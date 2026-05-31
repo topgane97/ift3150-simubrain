@@ -1,56 +1,112 @@
----
-title: Suivi du projet
----
+# Suivi hebdomadaire
 
-<style>
-    @media screen and (min-width: 76em) {
-        .md-sidebar--primary {
-            display: none !important;
-        }
-    }
-</style>
-
-# Suivi de projet
-
-> :bulb: Cette page documente l’évolution du projet dans le temps.
-> Elle sert à rendre visibles les décisions, ajustements et apprentissages.
-> Les entrées peuvent être hebdomadaires ou bi-hebdomadaires.  
-> N'oubliez pas d’effacer ou de mettre en commentaires les notes (`>`) avant la remise finale.
+Ce journal documente l'avancement du projet semaine par semaine : objectifs fixés, travail accompli, blocages, prochaines étapes.
 
 ---
 
-## Semaine 1 (12–18 janvier)
+## Semaine 0.1: Avant-démarrage (27 avril au 1er mai 2026)
 
-### Objectifs de la période
-- Clarifier la problématique
-- Explorer les solutions existantes
-- Produire un premier prototype conceptuel
+**Objectifs**
 
-### Travail réalisé
+- prépaprer la rencontre avec Abdelhamid pour clarifier le projet(1er mai)
+- Rédiger la proposition de projet IFT 3150 pour Louis-Édouard Lafontant (échéance 8 mai) 
+- Lire la description officielle du projet SimuBrAIn (Syriani et al.)
+- Commencer la lecture de Mascart et al. 2022 (ATiTA / ATiTAP) et les autres ressources sur DEVS
 
-!!! abstract "Avancement"
-    - [x] Analyse de solutions existantes
-        - Comparaison de trois outils similaires
-    - [x] Prototype basse fidélité (Figma)
-    - [ ] Validation utilisateur
-        - Reportée à la semaine suivante
+**Accompli**
 
-### Décisions et ajustements
+- [X] Première rencontre avec Abdelhamid, Eugene et Alexandre
+- [X] Proposition de projet envoyée à Louis-Édouard Lafontant
+- [X] Familiarisation  avec les outils de DEVS comme miniconda et la librairie pythonpdevs pour modéliser des neurones
+- [X] Mise en place du site MkDocs
 
-> À compléter uniquement si des choix structurants ont été faits
-> ou si l’orientation du projet a évolué.
 
-!!! info "Décisions"
-    - Abandon de l’approche X jugée trop complexe
-    - Reformulation de la problématique suite aux premières analyses
 
-### Difficultés rencontrées
+## Semaine 1(4 mai au 8 mai 2026): *Idéation, planification du projet et études préliminaires*
 
-> À compléter uniquement si des obstacles ont eu un impact réel
-> sur l’avancement du projet.
+**Objectifs**
 
-!!! warning "Difficultés"
-    - Problème de configuration du plugin Mermaid
-        - Confusion entre `mkdocs-mermaid2-plugin` (pip)
-          et `mermaid2` (nom du plugin)
-        - Résolu après nettoyage et configuration correcte dans `mkdocs.yml`
+- setup le site web pour le cours
+- setup l'environnement conda et la librairie pydevs
+- setup le repo github
+
+**Accompli**
+
+- [X] deuxième rencontre avec Abdelhamid, Eugene et Alexandre le 6 mai 2026
+- [X] setup le site web pour le cours
+- [X] setup l'environnement conda et la librairie pydevs
+- [X] setup le repo github
+
+**Prochaines étapes**
+
+- familiarisation pyDevs : neurone Poisson
+
+## Semaine 2 (11 mai au 15 mai 2026): *Idéation, planification du projet et études préliminaires*
+
+**Objectifs**
+
+- Familiarisation pyDevs: comprendre l'exemple policeman et trafficlight dans tutorial classic de pydevs
+- comprendre comment utiliser le python orienté objet dans ce contexte d'utilisation de pydevs
+- Implémenter le neurone poisson a l'aide de la librairie Pydevs
+
+**Accompli**
+
+- [X] Troisième rencontre avec Abdelhamid, Eugene et Alexandre le 13 mai 2026
+- [X] Familiarisation pyDevs: comprendre l'exemple policeman et trafficlight dans tutorial classic de pydevs
+- [X] comprendre comment utiliser le python orienté objet dans ce contexte d'utilisation de pydevs
+- [ ] Implémenter le neurone poisson a l'aide de la librairie Pydevs
+
+**Prochaines étapes**
+
+- Implémenter le neurone poisson a l'aide de la librairie Pydevs
+
+## Semaine 3 (18 mai au 22 mai 2026): *Réalisation progressive du Projet*
+
+**Objectifs**
+
+- Implémenter le neurone poisson a l'aide de la librairie Pydevs
+- Faire les tests unitaires de vérification sur le Poisson_neuron.py
+- Git push Poisson_neuron.py et test_poisson_neuron.py
+
+
+**Accompli**
+
+- [X] Quatrième rencontre avec Abdelhamid, Eugene et Alexandre le 20 mai 2026
+- [X] Implémenter le neurone poisson a l'aide de la librairie Pydevs
+- [X] Faire les tests unitaires de vérification sur le Poisson_neuron.py
+- [X] Git push Poisson_neuron.py et test_poisson_neuron.py
+
+
+**Prochaines étapes**
+
+- Implémenter le transducer, modèle couplé et valider avec le taux empirique vs théorique 
+## Semaine 4 (25 mai au 29 mai 2026): *Réalisation progressive du Projet*
+
+**Objectifs**
+
+- Implémenter le transducer a l'aide de la librairie Pydevs
+- Implémenter le modèle couplé a l'aide de la librairie Pydevs
+- Faire les tests unitaires  de vérification du comportement de Pydevs attendu sur le transducer et le modèle couplé
+- valider avec le taux empirique vs théorique en exécutant l'expérience
+- Git push les nouveaux ajouts
+
+
+**Accompli**
+
+- [X] cinquième rencontre avec Abdelhamid, Eugene et Alexandre le 29 mai 2026
+- [X] Implémenter le transducer a l'aide de la librairie Pydevs
+- [X] Implémenter le modèle couplé a l'aide de la librairie Pydevs
+- [X] Faire les tests unitaires de vérification du comportement de Pydevs attendu  sur le transducer et le modèle couplé
+- [ ] valider avec le taux empirique vs théorique en exécutant l'expérience
+- [X] Git push les nouveaux ajouts
+
+
+
+**Prochaines étapes**
+
+- valider avec le taux empirique vs théorique en exécutant l'expérience
+- extension avec un modèle queue-based (file recevant les spikes) et le valider lui aussi
+- Implémenter les corrections de Abdelhamid sur ce qui a été fait précédemment
+
+---
+

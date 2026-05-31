@@ -1,4 +1,4 @@
-site_name: Site de suivi IFT3150
+site_name: Simubrain IFT3150
 site_description: Template de site web pour le cours IFT3150
 site_author: Louis-Edouard Lafontant
 site_url: https://ift3150-template.github.io
@@ -67,6 +67,8 @@ markdown_extensions:
 
 plugins:
   - search
+extra_css:
+  - css/no-sidebar.css
 
 
 nav:
