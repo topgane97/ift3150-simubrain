@@ -543,18 +543,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#structure-suggeree" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Structure suggérée
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Structure suggérée">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#methodes-de-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -564,8 +552,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#resultats-obtenus" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -575,8 +563,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#analyse-critique" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -586,8 +574,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#limites-du-projet" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -595,11 +583,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -638,18 +621,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#structure-suggeree" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Structure suggérée
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Structure suggérée">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#methodes-de-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -659,8 +630,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#resultats-obtenus" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -670,8 +641,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#analyse-critique" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -681,8 +652,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#limites-du-projet" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -690,11 +661,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -727,59 +693,37 @@
 </style>
 
 <h1 id="evaluation">Évaluation<a class="headerlink" href="#evaluation" title="Permanent link">&para;</a></h1>
-<blockquote>
-<p><img alt="💡" class="emojione" src="https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/png/1f4a1.png" title=":bulb:" /> Cette page sert à présenter comment le projet a été testé, évalué ou validé.<br />
-Elle ne remplace pas le rapport final, mais permet de documenter progressivement les résultats obtenus et leur interprétation.</p>
-</blockquote>
-<h2 id="structure-suggeree">Structure suggérée<a class="headerlink" href="#structure-suggeree" title="Permanent link">&para;</a></h2>
-<blockquote>
-<p>La structure suivante est donnée à titre indicatif.<br />
-Vous pouvez l’adapter selon la nature du projet.</p>
-</blockquote>
-<h3 id="methodes-de-validation">Méthodes de validation<a class="headerlink" href="#methodes-de-validation" title="Permanent link">&para;</a></h3>
-<blockquote>
-<p>Présentez les approches utilisées pour valider le projet :</p>
+<p><em>Dernière mise à jour : fin de la semaine 5 (début juin 2026).</em></p>
+<p>Cette page présente la stratégie de test, les résultats obtenus sur le neurone de Poisson homogène, leur interprétation et les limites actuelles.</p>
+<h2 id="methodes-de-validation">Méthodes de validation<a class="headerlink" href="#methodes-de-validation" title="Permanent link">&para;</a></h2>
+<p>La validation opère à deux niveaux que le projet garde volontairement séparés : les tests automatisés vérifient ce qui est déterministe, et l'expérience valide ce qui est statistique.</p>
+<p>La suite pytest (19 tests) couvre les invariants structurels et déterministes. Côté structure : le câblage des sous-modèles, la garde <code>rate &gt; 0</code> qui lève une exception, le <code>timeAdvance</code> infini du Transducer, et l'enregistrement chronologique des couples <code>(temps, payload)</code> dans l'horizon de simulation. Côté déterminisme : la reproductibilité par graine (deux modèles de même graine produisent exactement la même séquence de tirages), la positivité de <code>timeAdvance</code>, et l'exactitude des fonctions de calcul (<code>compute_isi</code>, <code>theoretical_stats</code>).</p>
+<p>Aucun de ces tests ne vérifie que le taux empirique tombe près de <span class="arithmatex">\(\lambda\)</span>. C'est le principe directeur de la stratégie : une assertion portant sur une grandeur aléatoire serait soit instable, soit trivialement vraie. Tester le déterminisme et valider le hasard sont deux activités distinctes, et les mélanger affaiblirait les deux.</p>
+<p>La validation statistique est donc confiée à l'expérience <code>run_basic_experiment</code>, qui compare un train simulé aux prédictions du modèle de Poisson homogène : le compte de spikes contre <span class="arithmatex">\(\lambda \cdot T\)</span>, l'intervalle inter-spikes moyen contre <span class="arithmatex">\(1/\lambda\)</span>, et le taux empirique contre <span class="arithmatex">\(\lambda\)</span>. L'intervalle de confiance à 95% sur le compte vient de l'approximation normale <span class="arithmatex">\(\lambda T \pm 1.96\sqrt{\lambda T}\)</span>. Une figure à trois panneaux complète la comparaison numérique par une inspection visuelle.</p>
+<h2 id="resultats-obtenus">Résultats obtenus<a class="headerlink" href="#resultats-obtenus" title="Permanent link">&para;</a></h2>
+<p>La suite pytest passe entièrement au vert (19 tests), confirmant les invariants structurels et déterministes des modèles et de la couche d'analyse.</p>
+<p>La validation statistique est lancée par :</p>
+<div class="highlight"><pre><span></span><code>python -m simubrain.experiments.run_basic_experiment --rate 20 --duration 60 --seed 42
+</code></pre></div>
+<p>Pour ce neurone à <span class="arithmatex">\(\lambda = 20\)</span> Hz simulé sur 60 secondes (seed 42) :</p>
 <ul>
-<li>scénarios d’utilisation ;</li>
-<li>tests fonctionnels ;</li>
-<li>tests utilisateurs ;</li>
-<li>mesures de performance ;</li>
-<li>validation expérimentale ;</li>
-<li>comparaison avec des solutions existantes.</li>
+<li>compte de spikes : 1190 mesurés contre 1200 attendus, dans l'intervalle de confiance à 95% [1132, 1268] ;</li>
+<li>intervalle inter-spikes moyen : 0.0503 s contre 0.0500 s attendu ;</li>
+<li>taux empirique : 19.833 Hz contre 20 Hz attendu.</li>
 </ul>
-</blockquote>
-<h3 id="resultats-obtenus">Résultats obtenus<a class="headerlink" href="#resultats-obtenus" title="Permanent link">&para;</a></h3>
-<blockquote>
-<p>Présentez les principaux résultats :</p>
+<p><img alt="Figure de validation pour un neurone de Poisson à 20 Hz sur 60 s, seed 42" src="../images/validation_rate20_seed42.png" /></p>
+<p><em>Validation du neurone de Poisson homogène (<span class="arithmatex">\(\lambda = 20\)</span> Hz, 60 s, seed 42). En haut : raster des spikes. Au milieu : distribution empirique des ISI superposée à la densité théorique <span class="arithmatex">\(\text{Exp}(20)\)</span>. En bas : comptage cumulé <span class="arithmatex">\(N(t)\)</span> contre la droite <span class="arithmatex">\(20 \cdot t\)</span>.</em></p>
+<h2 id="analyse-critique">Analyse critique<a class="headerlink" href="#analyse-critique" title="Permanent link">&para;</a></h2>
+<p>L'objectif de cette étape, valider qu'un neurone de Poisson homogène exprimé en DEVS reproduit la théorie, est atteint. Le compte observé est à environ 0.3 écart-type sous la moyenne attendue (l'écart-type vaut <span class="arithmatex">\(\sqrt{1200} \approx 35\)</span> spikes), donc largement à l'intérieur de l'intervalle de confiance. Les trois métriques pointent d'ailleurs dans la même direction, légèrement sous le nominal : ce ne sont pas trois confirmations indépendantes, mais un même déficit de quelques spikes observé sous trois angles, ce qui est exactement le genre de fluctuation attendue d'un tirage unique.</p>
+<p>Visuellement, la distribution des ISI épouse la densité exponentielle et le comptage cumulé suit linéairement <span class="arithmatex">\(\lambda t\)</span> sans dérive, deux signatures d'un processus de Poisson homogène. Le découplage entre la couche de modèles et la couche d'analyse paie ici : la même validation s'appliquera aux sources stochastiques futures (MMPP, G-networks) sans modification.</p>
+<p>Le résultat porte toutefois sur une seule exécution : il établit la correction du modèle sur un cas, pas sa robustesse statistique. Un écart systématique faible resterait indétectable à ce stade.</p>
+<h2 id="limites-du-projet">Limites du projet<a class="headerlink" href="#limites-du-projet" title="Permanent link">&para;</a></h2>
 <ul>
-<li>fonctionnalités validées ;</li>
-<li>performances observées ;</li>
-<li>résultats de tests ;</li>
-<li>retours utilisateurs ;</li>
-<li>observations importantes.</li>
+<li>Portée du modèle : seul le neurone de Poisson homogène est validé. Les extensions MMPP et G-networks, ainsi que le méta-formalisme unifié, ne sont pas encore implémentées ni évaluées.</li>
+<li>Profondeur statistique : la validation repose sur une exécution unique par configuration. Une campagne agrégeant plusieurs graines permettrait d'estimer la dispersion réelle du compte plutôt que de constater un seul tirage. De plus, l'approximation normale de l'intervalle de confiance n'est fiable que pour de grands comptes attendus ; aux faibles taux ou courtes durées, des quantiles de Poisson exacts seraient préférables.</li>
+<li>Portée des tests automatisés : pytest garantit la correction structurelle et déterministe, mais l'exactitude statistique dépend d'une inspection manuelle des sorties d'expérience.</li>
+<li>Dépendances externes : la simulation repose sur PyPDEVS, et la reproductibilité dépend du générateur <code>default_rng</code> de numpy, appelé à évoluer avec le refactor RNG.</li>
 </ul>
-</blockquote>
-<h3 id="analyse-critique">Analyse critique<a class="headerlink" href="#analyse-critique" title="Permanent link">&para;</a></h3>
-<blockquote>
-<p>Discutez des résultats obtenus :</p>
-<ul>
-<li>les objectifs ont-ils été atteints ?</li>
-<li>quels éléments fonctionnent bien ?</li>
-<li>quelles limites ont été observées ?</li>
-<li>quels aspects pourraient être améliorés ?</li>
-</ul>
-</blockquote>
-<h3 id="limites-du-projet">Limites du projet<a class="headerlink" href="#limites-du-projet" title="Permanent link">&para;</a></h3>
-<blockquote>
-<p>Présentez les principales limites du projet :</p>
-<ul>
-<li>contraintes techniques ;</li>
-<li>portée limitée ;</li>
-<li>temps disponible ;</li>
-<li>limites des données ou des tests ;</li>
-<li>dépendances externes.</li>
-</ul>
-</blockquote>
 
 
 
