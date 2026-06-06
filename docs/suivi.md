@@ -109,4 +109,28 @@ Ce journal documente l'avancement du projet semaine par semaine : objectifs fix�
 - Implémenter les corrections de Abdelhamid sur ce qui a été fait précédemment
 
 ---
+## Semaine 5 (1er juin au 5 juin): *Réalisation progressive du Projet*
 
+**Objectifs**
+
+- Valider avec le taux empirique vs théorique en exécutant l'expérience 
+- Analyser le résultat à l'aide de Matplotlib et Numpy 
+- Git push les nouveaux ajouts
+
+
+**Accompli**
+
+- [X] Sixième rencontre avec Abdelhamid, Eugene et Alexandre le 4 juin 2026
+- [X] Implémenter l'expérience sur le neurone poisson à l'aide du simulator de Pydevs
+- [X] Implémenter le fichier analysis.py utilisant matplotlib et numpy pour visualiser les résultats et calculer les valeurs à comparer niveau théorique et empirique 
+- [X] Faire les tests unitaires de vérification du comportement de analysis.py pour les calculs et la visualisation
+- [X] Git push les nouveaux ajouts
+
+
+
+**Prochaines étapes**
+
+- Comprendre et Implémenter Markov devs
+- Implémenter les corrections de Abdelhamid sur ce qui a été fait précédemment
+
+---
