@@ -52,6 +52,8 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.tabbed
+  - pymdownx.arithmatex:
+      generic: true
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.highlight
@@ -69,11 +71,14 @@ plugins:
   - search
 extra_css:
   - css/no-sidebar.css
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 
 
 nav:
   - Vue d'ensemble: index.md
   - Suivi: suivi.md
-  - Études préliminaires: analyse.md
+  - Journal de Bord: analyse.md
   - Réalisation: realisation.md
   - Évaluation: evaluation.md

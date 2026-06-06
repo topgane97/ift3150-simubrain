@@ -89,6 +89,6 @@ Chaque modèle implémenté est validé avant de passer à l'étape suivante :
 ## Navigation du site
 
 - **[Suivi](suivi.md)**: Journal de bord et avancement
-- **[Études préliminaires](analyse.md)**: Analyse et recherche
+- **[Journal de bord](analyse.md)**: Analyse et recherche
 - **[Réalisation](realisation.md)**: Implémentation
 - **[Évaluation](evaluation.md)**: Résultats et validation
