@@ -109,7 +109,7 @@ Ce journal documente l'avancement du projet semaine par semaine : objectifs fix�
 - Implémenter les corrections de Abdelhamid sur ce qui a été fait précédemment
 
 ---
-## Semaine 5 (1er juin au 5 juin): *Réalisation progressive du Projet*
+## Semaine 5 (1er juin au 5 juin 2026): *Réalisation progressive du Projet*
 
 **Objectifs**
 
