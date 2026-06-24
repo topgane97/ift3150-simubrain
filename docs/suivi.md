@@ -134,3 +134,38 @@ Ce journal documente l'avancement du projet semaine par semaine : objectifs fix�
 - Implémenter les corrections de Abdelhamid sur ce qui a été fait précédemment
 
 ---
+## Semaine 6 (8 juin au 12 juin 2026): *Réalisation progressive du Projet*
+
+**Objectifs**
+
+- se familiariser avec Markov devs et Gelenbe
+- finir le refactor du Rng en rgn.py en tant que classe 
+
+
+**Accompli**
+
+- [X] Septièmme rencontre avec Abdelhamid, Eugene et Alexandre le 10 juin 2026
+- [X] Se familiariser avec Markov devs et Gelenbe
+- [X] Finir le refactor du random number generator(RNG.py) pour faciliter la génération de  seeds dans le contexte de réseaux de neurones mais il reste de petites corrections à faire
+- [ ] Git push les nouveaux ajouts
+
+
+
+**Prochaines étapes**
+
+- semaine d'examens finaux la semaine prochaine 
+
+---
+## Semaine 7 (15 juin au 19 juin 2026): *Réalisation progressive du Projet*
+
+**État du projet**
+
+- Pause de la rencontre du groupe jumeau numérique du cerveau pour cette semaine 
+- Pause du projet car semaine d'examens finaux pour moi
+
+**Prochaines étapes**
+
+- Révision de ce que j'ai fais jusqu'à maintenant dans le but de le présenter à la mise en commun 2 et à Abdelhamid, Eugene et Alexandre   
+- Implémenter Markov devs MMPP et finalisé rng.py
+
+---
