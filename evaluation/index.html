@@ -562,6 +562,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Résultats obtenus">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#neurone-de-poisson-homogene" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Neurone de Poisson homogène
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#neurone-mmpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Neurone MMPP
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -640,6 +668,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Résultats obtenus">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#neurone-de-poisson-homogene" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Neurone de Poisson homogène
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#neurone-mmpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Neurone MMPP
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -693,15 +749,17 @@
 </style>
 
 <h1 id="evaluation">Évaluation<a class="headerlink" href="#evaluation" title="Permanent link">&para;</a></h1>
-<p><em>Dernière mise à jour : fin de la semaine 5 (début juin 2026).</em></p>
-<p>Cette page présente la stratégie de test, les résultats obtenus sur le neurone de Poisson homogène, leur interprétation et les limites actuelles.</p>
+<p><em>Dernière mise à jour : semaine 8 (fin juin 2026).</em></p>
+<p>Cette page présente la stratégie de test, les résultats obtenus sur le neurone de Poisson homogène puis sur le neurone MMPP, leur interprétation et les limites actuelles.</p>
 <h2 id="methodes-de-validation">Méthodes de validation<a class="headerlink" href="#methodes-de-validation" title="Permanent link">&para;</a></h2>
 <p>La validation opère à deux niveaux que le projet garde volontairement séparés : les tests automatisés vérifient ce qui est déterministe, et l'expérience valide ce qui est statistique.</p>
-<p>La suite pytest (19 tests) couvre les invariants structurels et déterministes. Côté structure : le câblage des sous-modèles, la garde <code>rate &gt; 0</code> qui lève une exception, le <code>timeAdvance</code> infini du Transducer, et l'enregistrement chronologique des couples <code>(temps, payload)</code> dans l'horizon de simulation. Côté déterminisme : la reproductibilité par graine (deux modèles de même graine produisent exactement la même séquence de tirages), la positivité de <code>timeAdvance</code>, et l'exactitude des fonctions de calcul (<code>compute_isi</code>, <code>theoretical_stats</code>).</p>
-<p>Aucun de ces tests ne vérifie que le taux empirique tombe près de <span class="arithmatex">\(\lambda\)</span>. C'est le principe directeur de la stratégie : une assertion portant sur une grandeur aléatoire serait soit instable, soit trivialement vraie. Tester le déterminisme et valider le hasard sont deux activités distinctes, et les mélanger affaiblirait les deux.</p>
-<p>La validation statistique est donc confiée à l'expérience <code>run_basic_experiment</code>, qui compare un train simulé aux prédictions du modèle de Poisson homogène : le compte de spikes contre <span class="arithmatex">\(\lambda \cdot T\)</span>, l'intervalle inter-spikes moyen contre <span class="arithmatex">\(1/\lambda\)</span>, et le taux empirique contre <span class="arithmatex">\(\lambda\)</span>. L'intervalle de confiance à 95% sur le compte vient de l'approximation normale <span class="arithmatex">\(\lambda T \pm 1.96\sqrt{\lambda T}\)</span>. Une figure à trois panneaux complète la comparaison numérique par une inspection visuelle.</p>
+<p>La suite pytest (44 tests) couvre les invariants structurels et déterministes. Côté structure : le câblage des sous-modèles, les gardes de validité qui lèvent une exception (<code>rate &gt; 0</code> pour le neurone de Poisson ; pour le MMPP, taux strictement positifs, <span class="arithmatex">\(Q\)</span> carrée et compatible avec <code>rates</code>, lignes de somme nulle, hors-diagonale non négative, taux de sortie strictement positif), le <code>timeAdvance</code> infini du Transducer, et l'enregistrement chronologique des couples <code>(temps, payload)</code> dans l'horizon de simulation. Côté déterminisme : la reproductibilité par graine (deux modèles de même graine produisent exactement la même séquence de tirages), la pureté et la positivité de <code>timeAdvance</code>, et l'exactitude des fonctions de calcul (<code>compute_isi</code>, <code>theoretical_stats</code>).</p>
+<p>Le MMPP ajoute une couche de tests propre à sa machine à états : la résolution correcte des deux horloges concurrentes (victoire du spike, victoire de la transition, priorité au spike en cas d'égalité), le décrément de l'horloge de transition plutôt que son re-tirage quand un spike gagne, et la généricité du nombre d'états (une chaîne à trois états simule sans cas particulier).</p>
+<p>Aucun de ces tests ne vérifie que le taux empirique tombe près de sa valeur théorique. C'est le principe directeur de la stratégie : une assertion portant sur une grandeur aléatoire serait soit instable, soit trivialement vraie. Tester le déterminisme et valider le hasard sont deux activités distinctes, et les mélanger affaiblirait les deux.</p>
+<p>La validation statistique est donc confiée aux expériences. Pour le neurone de Poisson, <code>run_basic_experiment</code> compare un train simulé aux prédictions du modèle homogène : le compte de spikes contre <span class="arithmatex">\(\lambda \cdot T\)</span>, l'intervalle inter-spikes moyen contre <span class="arithmatex">\(1/\lambda\)</span>, et le taux empirique contre <span class="arithmatex">\(\lambda\)</span>. Pour le MMPP, <code>run_mmpp_experiment</code> compare le compte observé au taux effectif <span class="arithmatex">\(\bar\lambda = \sum_i \pi_i \, \lambda_i\)</span>, où <span class="arithmatex">\(\pi\)</span> est la distribution stationnaire de la CTMC modulante. Dans les deux cas, l'intervalle de confiance à 95% sur le compte vient de l'approximation normale <span class="arithmatex">\(\mu \pm 1.96\sqrt{\mu}\)</span>, et une figure à trois panneaux complète la comparaison numérique par une inspection visuelle.</p>
 <h2 id="resultats-obtenus">Résultats obtenus<a class="headerlink" href="#resultats-obtenus" title="Permanent link">&para;</a></h2>
-<p>La suite pytest passe entièrement au vert (19 tests), confirmant les invariants structurels et déterministes des modèles et de la couche d'analyse.</p>
+<p>La suite pytest passe entièrement au vert (44 tests), confirmant les invariants structurels et déterministes des modèles, de la couche RNG et de la couche d'analyse.</p>
+<h3 id="neurone-de-poisson-homogene">Neurone de Poisson homogène<a class="headerlink" href="#neurone-de-poisson-homogene" title="Permanent link">&para;</a></h3>
 <p>La validation statistique est lancée par :</p>
 <div class="highlight"><pre><span></span><code>python -m simubrain.experiments.run_basic_experiment --rate 20 --duration 60 --seed 42
 </code></pre></div>
@@ -713,16 +771,31 @@
 </ul>
 <p><img alt="Figure de validation pour un neurone de Poisson à 20 Hz sur 60 s, seed 42" src="../images/validation_rate20_seed42.png" /></p>
 <p><em>Validation du neurone de Poisson homogène (<span class="arithmatex">\(\lambda = 20\)</span> Hz, 60 s, seed 42). En haut : raster des spikes. Au milieu : distribution empirique des ISI superposée à la densité théorique <span class="arithmatex">\(\text{Exp}(20)\)</span>. En bas : comptage cumulé <span class="arithmatex">\(N(t)\)</span> contre la droite <span class="arithmatex">\(20 \cdot t\)</span>.</em></p>
+<h3 id="neurone-mmpp">Neurone MMPP<a class="headerlink" href="#neurone-mmpp" title="Permanent link">&para;</a></h3>
+<p>La validation est lancée par :</p>
+<div class="highlight"><pre><span></span><code>python -m simubrain.experiments.run_mmpp_experiment --duration 60 --seed 42
+</code></pre></div>
+<p>Le cas de référence est le neurone à deux états repos / actif : taux <span class="arithmatex">\(\lambda_0 = 5\)</span> Hz et <span class="arithmatex">\(\lambda_1 = 40\)</span> Hz, générateur <span class="arithmatex">\(Q = \begin{pmatrix} -0.5 &amp; 0.5 \\ 2.0 &amp; -2.0 \end{pmatrix}\)</span> (taux de sortie <span class="arithmatex">\(q_0 = 0.5\)</span>/s au repos, <span class="arithmatex">\(q_1 = 2.0\)</span>/s en actif). La distribution stationnaire est <span class="arithmatex">\(\pi = (0.8, 0.2)\)</span>, d'où un taux effectif <span class="arithmatex">\(\bar\lambda = 0.8 \cdot 5 + 0.2 \cdot 40 = 12\)</span> Hz, soit 720 spikes attendus sur 60 secondes, avec un intervalle de confiance à 95% [667, 773].</p>
+<p>Pour ce neurone simulé sur 60 secondes (seed 42) :</p>
+<ul>
+<li>compte de spikes : 739 mesurés contre 720 attendus, dans l'intervalle de confiance à 95% [667, 773] ;</li>
+<li>taux empirique : 12.317 Hz contre 12 Hz attendu (<span class="arithmatex">\(\bar\lambda\)</span>) ;</li>
+<li>intervalle inter-spikes moyen : 0.0808 s contre 0.0833 s attendu (<span class="arithmatex">\(1/\bar\lambda\)</span>).</li>
+</ul>
+<p><img alt="Figure de validation pour un neurone MMPP repos / actif sur 60 s, seed 42" src="../images/validation_mmpp_seed42.png" /></p>
+<p><em>Validation du neurone MMPP (repos <span class="arithmatex">\(\lambda_0 = 5\)</span> Hz, actif <span class="arithmatex">\(\lambda_1 = 40\)</span> Hz, <span class="arithmatex">\(\bar\lambda = 12\)</span> Hz, 60 s, seed 42). En haut : raster des spikes, où la signature MMPP est visible à l'oeil (bandes denses à 40 Hz en état actif, zones clairsemées à 5 Hz au repos). Au milieu : distribution empirique des ISI, sans superposition exponentielle puisque la loi est une mixture. En bas : comptage cumulé <span class="arithmatex">\(N(t)\)</span> contre la droite <span class="arithmatex">\(\bar\lambda \cdot t\)</span>, en escalier (plateaux au repos, montées raides en bouffée).</em></p>
 <h2 id="analyse-critique">Analyse critique<a class="headerlink" href="#analyse-critique" title="Permanent link">&para;</a></h2>
-<p>L'objectif de cette étape, valider qu'un neurone de Poisson homogène exprimé en DEVS reproduit la théorie, est atteint. Le compte observé est à environ 0.3 écart-type sous la moyenne attendue (l'écart-type vaut <span class="arithmatex">\(\sqrt{1200} \approx 35\)</span> spikes), donc largement à l'intérieur de l'intervalle de confiance. Les trois métriques pointent d'ailleurs dans la même direction, légèrement sous le nominal : ce ne sont pas trois confirmations indépendantes, mais un même déficit de quelques spikes observé sous trois angles, ce qui est exactement le genre de fluctuation attendue d'un tirage unique.</p>
-<p>Visuellement, la distribution des ISI épouse la densité exponentielle et le comptage cumulé suit linéairement <span class="arithmatex">\(\lambda t\)</span> sans dérive, deux signatures d'un processus de Poisson homogène. Le découplage entre la couche de modèles et la couche d'analyse paie ici : la même validation s'appliquera aux sources stochastiques futures (MMPP, G-networks) sans modification.</p>
-<p>Le résultat porte toutefois sur une seule exécution : il établit la correction du modèle sur un cas, pas sa robustesse statistique. Un écart systématique faible resterait indétectable à ce stade.</p>
+<p>L'objectif des deux étapes, valider qu'un neurone de Poisson homogène puis un neurone à taux modulé par une CTMC exprimés en DEVS reproduisent la théorie, est atteint.</p>
+<p>Pour le Poisson, le compte observé est à environ 0.3 écart-type sous la moyenne attendue (l'écart-type vaut <span class="arithmatex">\(\sqrt{1200} \approx 35\)</span> spikes), donc largement à l'intérieur de l'intervalle de confiance. Les trois métriques pointent dans la même direction, légèrement sous le nominal : ce ne sont pas trois confirmations indépendantes, mais un même déficit de quelques spikes observé sous trois angles, exactement le genre de fluctuation attendue d'un tirage unique. Visuellement, la distribution des ISI épouse la densité exponentielle et le comptage cumulé suit linéairement <span class="arithmatex">\(\lambda t\)</span> sans dérive.</p>
+<p>Pour le MMPP, le compte observé est à environ 0.7 écart-type au-dessus de la moyenne attendue (l'écart-type vaut <span class="arithmatex">\(\sqrt{720} \approx 27\)</span> spikes), bien à l'intérieur de l'intervalle de confiance. La validation porte ici sur le bon critère : le compte d'un MMPP est asymptotiquement Poisson de moyenne <span class="arithmatex">\(\bar\lambda T\)</span>, donc c'est <span class="arithmatex">\(\bar\lambda\)</span> et non un taux instantané qui doit être retrouvé. C'est aussi pourquoi le panneau ISI n'a pas de superposition exponentielle : la loi des ISI d'un processus modulé est une mixture sur-dispersée, et un overlay <span class="arithmatex">\(\text{Exp}(\bar\lambda)\)</span> aurait été trompeur, laissant croire à un défaut là où il n'y en a pas. La moyenne des ISI coïncide bien avec <span class="arithmatex">\(1/\bar\lambda\)</span>, mais c'est une coïncidence de moyenne, pas d'égalité de distribution. La signature en bouffées du raster et l'allure en escalier du comptage cumulé confirment visuellement la modulation.</p>
+<p>Le découplage entre la couche de modèles et la couche d'analyse paie sur cette extension : les panneaux raster et comptage cumulé ont été réutilisés tels quels pour le MMPP, et seul le panneau ISI a dû être spécialisé, ce qui a mis au jour une fuite d'abstraction (le docstring promettait à tort la réutilisation intégrale pour toute source future). La correction a consisté à dire la vérité sur ce qui se réutilise, plutôt qu'à forcer une réutilisation incorrecte.</p>
+<p>Les résultats portent toutefois sur une seule exécution par modèle : ils établissent la correction sur un cas, pas la robustesse statistique. Un écart systématique faible resterait indétectable à ce stade.</p>
 <h2 id="limites-du-projet">Limites du projet<a class="headerlink" href="#limites-du-projet" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Portée du modèle : seul le neurone de Poisson homogène est validé. Les extensions MMPP et G-networks, ainsi que le méta-formalisme unifié, ne sont pas encore implémentées ni évaluées.</li>
+<li>Portée des modèles : le neurone de Poisson homogène et le neurone MMPP sont validés. Les G-networks et le méta-formalisme unifié ne sont pas encore implémentés ni évalués.</li>
 <li>Profondeur statistique : la validation repose sur une exécution unique par configuration. Une campagne agrégeant plusieurs graines permettrait d'estimer la dispersion réelle du compte plutôt que de constater un seul tirage. De plus, l'approximation normale de l'intervalle de confiance n'est fiable que pour de grands comptes attendus ; aux faibles taux ou courtes durées, des quantiles de Poisson exacts seraient préférables.</li>
 <li>Portée des tests automatisés : pytest garantit la correction structurelle et déterministe, mais l'exactitude statistique dépend d'une inspection manuelle des sorties d'expérience.</li>
-<li>Dépendances externes : la simulation repose sur PyPDEVS, et la reproductibilité dépend du générateur <code>default_rng</code> de numpy, appelé à évoluer avec le refactor RNG.</li>
+<li>Dépendances externes : la simulation repose sur PyPDEVS, et la reproductibilité dépend du générateur <code>default_rng</code> de numpy, dérivé via <code>RandomStream</code>.</li>
 </ul>
 
 

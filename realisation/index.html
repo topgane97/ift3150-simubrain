@@ -574,6 +574,39 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#rngpy-randomstream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rng.py (RandomStream)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mmppneuron" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MMPPNeuron
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mmppexperiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MMPPExperiment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#analysispy-couche-de-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -589,6 +622,17 @@
     <span class="md-ellipsis">
       
         run_basic_experiment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_mmpp_experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_mmpp_experiment
       
     </span>
   </a>
@@ -740,6 +784,39 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#rngpy-randomstream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rng.py (RandomStream)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mmppneuron" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MMPPNeuron
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mmppexperiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MMPPExperiment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#analysispy-couche-de-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -755,6 +832,17 @@
     <span class="md-ellipsis">
       
         run_basic_experiment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_mmpp_experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_mmpp_experiment
       
     </span>
   </a>
@@ -817,7 +905,7 @@
 </style>
 
 <h1 id="realisation">Réalisation<a class="headerlink" href="#realisation" title="Permanent link">&para;</a></h1>
-<p><em>Dernière mise à jour : fin de la semaine 5 (début juin 2026).</em></p>
+<p><em>Dernière mise à jour : semaine 8 (fin juin 2026).</em></p>
 <p>Cette page présente l'implémentation telle qu'elle existe dans le dépôt : l'architecture, les composantes développées, l'état d'avancement et les décisions de conception. Le détail des tests et de la validation empirique vit dans la page Évaluation ; le déroulé chronologique des tâches vit dans la page Suivi.</p>
 <h2 id="architecture-generale">Architecture générale<a class="headerlink" href="#architecture-generale" title="Permanent link">&para;</a></h2>
 <p>Le code est organisé en src-layout (<code>src/</code> et <code>tests/</code> comme dossiers frères à la racine), packagé sous le module <code>simubrain</code>. Trois couches sont séparées de façon délibérée :</p>
@@ -826,8 +914,8 @@
 <li>la couche de validation (<code>src/simubrain/analysis.py</code>) : la comparaison empirique contre théorie, volontairement ignorante de DEVS (elle ne connaît que des listes de temps de spikes et un taux) ;</li>
 <li>la couche d'expériences (<code>src/simubrain/experiments/</code>) : le harnais en ligne de commande qui assemble une simulation, mesure, et écrit une figure.</li>
 </ul>
-<p>Ce découpage donne un couplage faible entre les couches : la validation peut observer n'importe quelle source future de spikes (MMPP, G-networks) sans modification, et le refactor RNG à venir ne touchera que la couche modèles.</p>
-<p>La structure expérimentale suit le pattern Experimental Frame de Zeigler : le <code>PoissonNeuron</code> joue le rôle de generator (la source de spikes), le <code>Transducer</code> celui de la sonde (l'observation), et la terminaison de la simulation est gérée par <code>setTerminationTime</code> (le rôle d'acceptor).</p>
+<p>Ce découpage donne un couplage faible entre les couches : la validation peut observer n'importe quelle source future de spikes (MMPP, G-networks) sans modification, et la gestion du RNG est centralisée dans une couche dédiée injectée dans les modèles.</p>
+<p>La structure expérimentale suit le pattern Experimental Frame de Zeigler : la source de spikes joue le rôle de generator, le <code>Transducer</code> celui de la sonde (l'observation), et la terminaison de la simulation est gérée par <code>setTerminationTime</code> (le rôle d'acceptor).</p>
 <p>Stack technique : Python 3.11, PyPDEVS 2.4.2 (installation editable), numpy et matplotlib pour le calcul et les figures, pytest pour les tests, ruff pour le linting et le formatage.</p>
 <h2 id="composantes-realisees">Composantes réalisées<a class="headerlink" href="#composantes-realisees" title="Permanent link">&para;</a></h2>
 <h3 id="poissonneuron">PoissonNeuron<a class="headerlink" href="#poissonneuron" title="Permanent link">&para;</a></h3>
@@ -838,32 +926,47 @@
 <p>Le composant est volontairement agnostique au domaine : le payload peut être n'importe quel objet, ce qui rend la sonde réutilisable dans n'importe quel réseau DEVS, pas seulement pour des trains de spikes.</p>
 <h3 id="spiketrainexperiment">SpikeTrainExperiment<a class="headerlink" href="#spiketrainexperiment" title="Permanent link">&para;</a></h3>
 <p>Modèle DEVS couplé minimal qui câble une source à une sonde : <code>PoissonNeuron.output</code> vers <code>Transducer.input</code>. Après simulation, le train de spikes enregistré est accessible via la propriété <code>spike_times</code>.</p>
+<h3 id="rngpy-randomstream">rng.py (RandomStream)<a class="headerlink" href="#rngpy-randomstream" title="Permanent link">&para;</a></h3>
+<p>Gestion centralisée et reproductible du tirage aléatoire, injectée dans les modèles plutôt qu'instanciée à l'intérieur. Une racine <code>RandomStream</code> est construite à partir d'une seule graine entière ; chaque source aléatoire de la simulation en est ensuite dérivée par <em>label</em>, jamais re-seedée à la main.</p>
+<p>Deux opérations de dérivation : <code>spawn(label)</code> retourne un générateur numpy prêt à l'emploi, pour les modèles feuilles (un neurone) ; <code>spawn_stream(label)</code> retourne un <code>RandomStream</code> enfant qui peut lui-même être dérivé, pour les propriétaires intermédiaires qui distribuent des sous-flux à leurs sous-composants (un modèle couplé qui sème ses nœuds).</p>
+<p>La dérivation est order-independent : <code>spawn("spikes")</code> produit le même sous-flux quel que soit l'ordre des autres labels dérivés, ce qui garde les modèles multi-sources (MMPP) et les réseaux de modèles (G-networks) reproductibles même quand des composants sont ajoutés ou réordonnés. La clé de dérivation vient d'un hachage BLAKE2b du label, et non du <code>hash()</code> natif de Python qui est salé par processus (<code>PYTHONHASHSEED</code>) et casserait la reproductibilité d'une exécution à l'autre.</p>
+<h3 id="mmppneuron">MMPPNeuron<a class="headerlink" href="#mmppneuron" title="Permanent link">&para;</a></h3>
+<p>Modèle DEVS atomique d'un neurone dont le taux de décharge instantané est modulé par une chaîne de Markov à temps continu (CTMC) cachée. Quand la CTMC est dans l'état <span class="arithmatex">\(i\)</span>, les spikes suivent un processus de Poisson homogène de taux <code>rates[i]</code> ; la chaîne saute entre états selon la matrice génératrice <span class="arithmatex">\(Q\)</span>.</p>
+<p>Le modèle est générique dans le nombre d'états : le mécanisme est identique pour tout <span class="arithmatex">\(n\)</span>, seules les données (<code>rates</code>, <code>Q</code>) portent le compte d'états. Le cas classique à deux états (repos / actif) est une simple instanciation, pas une classe spéciale. Cela aligne le modèle sur le point d'extension justifié du méta-formalisme, à coût YAGNI nul.</p>
+<p>Le cœur est un mécanisme à deux horloges concurrentes (<em>dual-clock</em>). Une horloge de spike <span class="arithmatex">\(\text{Exp}(\text{rates}[\text{current}])\)</span> donne le délai jusqu'au prochain spike ; une horloge de transition <span class="arithmatex">\(\text{Exp}(-Q[\text{current}, \text{current}])\)</span> donne le délai jusqu'au prochain saut de la CTMC, où <span class="arithmatex">\(-Q[\text{current}, \text{current}]\)</span> est le taux de sortie total de l'état courant. <code>timeAdvance</code> retourne le minimum des deux délais restants. Si l'horloge de spike gagne, le modèle émet un spike, re-tire seulement l'horloge de spike, garde l'état CTMC inchangé et décrémente l'horloge de transition du temps écoulé (sans la re-tirer, pour ne pas retarder artificiellement le saut en attente). Si l'horloge de transition gagne, le modèle saute vers un nouvel état échantillonné selon <span class="arithmatex">\(Q[\text{current}]\)</span>, puis re-tire les deux horloges.</p>
+<p><code>timeAdvance</code> reste pur (aucun tirage, aucune mutation) : tous les tirages se font dans <code>__init__</code> et <code>intTransition</code>, conformément à l'invariant DEVS. Les paramètres sont validés à la construction : <code>rates</code> strictement positifs, <span class="arithmatex">\(Q\)</span> carrée et compatible avec <code>rates</code>, lignes de somme nulle, hors-diagonale non négative, taux de sortie strictement positif (pas d'état absorbant). Deux flux RNG indépendants sont dérivés par label, <code>spawn("spikes")</code> pour l'horloge de spike et <code>spawn("transitions")</code> pour les durées de séjour et le choix de l'état suivant.</p>
+<h3 id="mmppexperiment">MMPPExperiment<a class="headerlink" href="#mmppexperiment" title="Permanent link">&para;</a></h3>
+<p>Modèle DEVS couplé qui câble un <code>MMPPNeuron</code> à un <code>Transducer</code>, sur le même patron que <code>SpikeTrainExperiment</code>. La duplication entre les deux frames est laissée en place plutôt qu'abstraite : deux frames mono-source ne justifient pas encore une classe de base commune (YAGNI). Si un troisième modèle source apparaît, une base <code>SingleSourceExperiment</code> sera factorisée à ce moment-là.</p>
 <h3 id="analysispy-couche-de-validation">analysis.py (couche de validation)<a class="headerlink" href="#analysispy-couche-de-validation" title="Permanent link">&para;</a></h3>
-<p>Regroupe les utilitaires de comparaison empirique contre théorie : les dataclasses <code>EmpiricalStats</code> et <code>TheoreticalStats</code>, le calcul des intervalles inter-spikes (<code>compute_isi</code>), les statistiques mesurées et prédites, et les fonctions de tracé assemblées dans <code>make_validation_figure</code> (figure à trois panneaux : raster, distribution des ISI contre <span class="arithmatex">\(\text{Exp}(\lambda)\)</span>, comptage cumulé <span class="arithmatex">\(N(t)\)</span> contre <span class="arithmatex">\(\lambda t\)</span>). Les résultats produits par cette couche et leur interprétation sont présentés dans la page Évaluation.</p>
+<p>Regroupe les utilitaires de comparaison empirique contre théorie : les dataclasses <code>EmpiricalStats</code> et <code>TheoreticalStats</code>, le calcul des intervalles inter-spikes (<code>compute_isi</code>), les statistiques mesurées et prédites, et les fonctions de tracé. Pour le neurone de Poisson homogène, <code>make_validation_figure</code> assemble une figure à trois panneaux (raster, distribution des ISI contre <span class="arithmatex">\(\text{Exp}(\lambda)\)</span>, comptage cumulé <span class="arithmatex">\(N(t)\)</span> contre <span class="arithmatex">\(\lambda t\)</span>).</p>
+<p>La couche a été étendue pour le MMPP sans casser le code Poisson existant. <code>stationary_distribution(Q)</code> résout <span class="arithmatex">\(\pi Q = 0\)</span> sous <span class="arithmatex">\(\sum_i \pi_i = 1\)</span> ; <code>effective_rate(rates, Q)</code> en déduit le taux effectif <span class="arithmatex">\(\bar\lambda\)</span>. La figure MMPP (<code>make_mmpp_validation_figure</code>) réutilise les panneaux raster et comptage cumulé, agnostiques au processus, mais remplace l'histogramme ISI par une version sans superposition : pour un processus modulé, la loi des ISI est une mixture sur-dispersée, et superposer <span class="arithmatex">\(\text{Exp}(\bar\lambda)\)</span> suggérerait à tort un ajustement qui ne tient pas. Les résultats produits par cette couche et leur interprétation sont présentés dans la page Évaluation.</p>
 <h3 id="run_basic_experiment">run_basic_experiment<a class="headerlink" href="#run_basic_experiment" title="Permanent link">&para;</a></h3>
-<p>Harnais en ligne de commande qui assemble le tout : il parse les arguments (taux, durée, graine, dossier de sortie), simule une expérience, imprime la comparaison des métriques, et écrit la figure de validation. Point d'entrée : <code>python -m simubrain.experiments.run_basic_experiment</code>.</p>
+<p>Harnais en ligne de commande qui assemble le tout pour le neurone de Poisson : il parse les arguments (taux, durée, graine, dossier de sortie), simule une expérience, imprime la comparaison des métriques, et écrit la figure de validation. Point d'entrée : <code>python -m simubrain.experiments.run_basic_experiment</code>.</p>
+<h3 id="run_mmpp_experiment">run_mmpp_experiment<a class="headerlink" href="#run_mmpp_experiment" title="Permanent link">&para;</a></h3>
+<p>Harnais en ligne de commande qui simule le neurone MMPP de référence (repos / actif), compare le compte de spikes observé au taux effectif <span class="arithmatex">\(\bar\lambda = \sum_i \pi_i \, \text{rates}_i\)</span>, et écrit la figure de validation. Les taux et la matrice <span class="arithmatex">\(Q\)</span> sont fixés dans le runner plutôt qu'exposés en arguments : ce harnais existe pour valider le cas de référence, pas pour explorer des chaînes arbitraires. Point d'entrée : <code>python -m simubrain.experiments.run_mmpp_experiment</code>.</p>
 <h2 id="etat-davancement">État d'avancement<a class="headerlink" href="#etat-davancement" title="Permanent link">&para;</a></h2>
-<p>À ce stade, le volet Poisson homogène est complété et validé, et le travail en cours entame les extensions Markov/MMPP et G-networks.</p>
+<p>À ce stade, le volet Poisson homogène et le premier modèle stochastique modulé (MMPP) sont complétés et validés ; le travail à venir entame les G-networks et le méta-formalisme unifié.</p>
 <p>Réalisé et committé :</p>
 <ul>
 <li>le neurone de Poisson homogène et sa simulation de bout en bout ;</li>
 <li>la sonde passive et le modèle couplé qui les relie ;</li>
 <li>la couche de validation et le harnais en ligne de commande ;</li>
+<li>la gestion centralisée du RNG (<code>RandomStream</code>), injectée dans les modèles et dérivée par label ;</li>
+<li>le neurone MMPP à dual-clock, son frame couplé, son harnais et les extensions de validation associées ;</li>
 <li>une suite pytest couvrant les invariants structurels et déterministes (détail dans Évaluation).</li>
 </ul>
 <p>En cours et à venir :</p>
 <ul>
-<li>refactor de la gestion du RNG : centraliser le tirage dans une classe dédiée injectée dans les modèles (injection de dépendances), pour offrir un point d'échange unique vers le backend MRG32k3a de L'Écuyer. Décision de conception encore ouverte sur la dérivation des graines (basée sur des labels contre compteur séquentiel) </li>
-<li>extension MMPP (Markov-Modulated Poisson Process) : enrichir verticalement un neurone avec un taux dépendant de l'état </li>
-<li>extension G-networks (réseaux de neurones aléatoires de Gelenbe) : modéliser horizontalement des populations en interaction </li>
-<li>expression du neurone stochastique via le méta-formalisme unifié.</li>
+<li>extension G-networks (réseaux de neurones aléatoires de Gelenbe) : modéliser horizontalement des populations en interaction via des signaux négatifs ;</li>
+<li>expression du neurone stochastique via le méta-formalisme unifié, puis benchmarks de performance.</li>
 </ul>
 <h2 id="decisions-de-conception">Décisions de conception<a class="headerlink" href="#decisions-de-conception" title="Permanent link">&para;</a></h2>
-<p>Découplage de la couche de validation : <code>analysis.py</code> ne dépend ni des modèles DEVS, ni du simulateur, ni du RNG. Cela garde la validation stable à travers le refactor RNG à venir et lui permet d'observer toute source future de spikes sans changement.</p>
+<p>Découplage de la couche de validation : <code>analysis.py</code> ne dépend ni des modèles DEVS, ni du simulateur, ni du RNG. Cela garde la validation stable et lui permet d'observer toute source future de spikes sans changement.</p>
 <p>Stockage de la liste d'événements hors de l'état du <code>Transducer</code> : la liste qui grossit est gardée comme attribut d'instance plutôt que dans l'objet d'état, pour éviter de copier une liste de plus en plus grande à chaque transition.</p>
-<p>RNG par instance : chaque modèle crée son propre <code>np.random.default_rng(seed)</code>, ce qui isole les flux aléatoires entre neurones et rend les exécutions reproductibles quand une graine explicite est passée. C'est la base que le refactor à venir généralisera vers une gestion centralisée et injectée.</p>
+<p>Gestion centralisée et injectée du RNG : plutôt que chaque modèle instancie son propre <code>np.random.default_rng(seed)</code>, un <code>RandomStream</code> racine est construit à partir d'une graine et injecté dans les modèles, qui dérivent leurs générateurs par label. Cela isole les flux entre composants, garde les exécutions reproductibles, et centralise le tirage en un point d'échange unique. La dérivation par label est order-independent (hachage BLAKE2b), ce qui reste reproductible quand des sources sont ajoutées ou réordonnées, condition nécessaire pour les modèles multi-sources (MMPP) et les réseaux à venir (G-networks).</p>
+<p>Généricité du MMPP dès la conception : le neurone MMPP prend <code>rates</code> et <span class="arithmatex">\(Q\)</span> de taille arbitraire, le mécanisme dual-clock étant identique pour tout nombre d'états. Le cas deux états est un appel, pas une classe. C'est le seul point d'extension anticipé justifié (il fait partie de la portée du méta-formalisme), à coût nul ; le reste suit YAGNI, d'où l'absence de Strategy configurable dans <code>timeAdvance</code> (l'exponentielle est le processus) et l'absence de base commune entre les deux frames d'expérience tant qu'un troisième modèle source n'existe pas.</p>
 <p>Pattern Experimental Frame : la séparation source / observation rend la sonde réutilisable et garde les responsabilités distinctes (un seul rôle par composant).</p>
-<p>Invariants explicites et transitions sans effet de bord : <code>rate &gt; 0</code> est vérifié à la construction, et les fonctions de transition retournent un nouvel état plutôt que de muter l'état courant, ce qui facilite le raisonnement et le test.</p>
+<p>Invariants explicites et transitions sans effet de bord : les gardes de validité (<code>rate &gt; 0</code>, structure de <span class="arithmatex">\(Q\)</span>) sont vérifiées à la construction, et les fonctions de transition retournent un nouvel état plutôt que de muter l'état courant, ce qui facilite le raisonnement et le test.</p>
 
 
 
