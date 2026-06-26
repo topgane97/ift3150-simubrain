@@ -169,3 +169,31 @@ Ce journal documente l'avancement du projet semaine par semaine : objectifs fix�
 - Implémenter Markov devs MMPP et finalisé rng.py
 
 ---
+## Semaine 8 (22 juin au 26 juin 2026): *Réalisation progressive du Projet*
+
+**Objectifs**
+
+- Réviser le travail accompli en vue de la mise en commun 2
+- Finaliser rng.py
+- Comprendre et implémenter le neurone MMPP (Markov-Modulated Poisson Process) avec PyDevs
+- Faire les tests unitaires de vérification du comportement attendu sur le MMPP
+- Valider le MMPP avec le taux effectif empirique vs théorique en exécutant l'expérience
+- Git push les nouveaux ajouts
+
+
+**Accompli**
+
+- [X] Réviser le travail accompli en vue de la mise en commun 2
+- [X] Finaliser rng.py et s'assurer que les fichiers dépendants fonctionnent toujours
+- [X] Implémenter le neurone MMPP a l'aide de la librairie Pydevs (mécanisme dual-clock, Q générique)
+- [X] Faire les tests unitaires de vérification du comportement de Pydevs attendu sur le MMPP
+- [X] Valider le MMPP avec le taux effectif empirique vs théorique en exécutant l'expérience
+- [X] Git push les nouveaux ajouts
+
+
+**Prochaines étapes**
+
+- Finaliser la présentation de la mise en commun 2
+- Continuer de bien réviser les étapes accomplies jusqu'à maintenant pour présenter le tout au groupe Simubrain le 2 juillet 2026
+
+---
