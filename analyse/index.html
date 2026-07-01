@@ -623,6 +623,67 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#semaine-6-a-8-du-8-au-26-juin-2026-markov-mmpp-et-rng-reproductible-en-reseau" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semaine 6 à 8 (du 8 au 26 juin 2026) : Markov, MMPP et RNG reproductible en réseau
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Semaine 6 à 8 (du 8 au 26 juin 2026) : Markov, MMPP et RNG reproductible en réseau">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#situer-markov-devs-mmpp-et-les-g-networks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Situer Markov DEVS, MMPP et les G-networks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#randomstream-reproductibilite-par-arbre-de-graines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RandomStream : reproductibilité par arbre de graines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#de-la-ctmc-au-mmpp-ce-qui-module-et-ce-quon-observe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        De la CTMC au MMPP : ce qui module et ce qu'on observe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#le-mecanisme-dual-clock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Le mécanisme dual-clock
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -833,6 +894,67 @@
     <span class="md-ellipsis">
       
         Validation statistique : empirique vs théorique
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#semaine-6-a-8-du-8-au-26-juin-2026-markov-mmpp-et-rng-reproductible-en-reseau" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semaine 6 à 8 (du 8 au 26 juin 2026) : Markov, MMPP et RNG reproductible en réseau
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Semaine 6 à 8 (du 8 au 26 juin 2026) : Markov, MMPP et RNG reproductible en réseau">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#situer-markov-devs-mmpp-et-les-g-networks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Situer Markov DEVS, MMPP et les G-networks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#randomstream-reproductibilite-par-arbre-de-graines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RandomStream : reproductibilité par arbre de graines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#de-la-ctmc-au-mmpp-ce-qui-module-et-ce-quon-observe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        De la CTMC au MMPP : ce qui module et ce qu'on observe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#le-mecanisme-dual-clock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Le mécanisme dual-clock
       
     </span>
   </a>
@@ -1063,6 +1185,188 @@ CI95 % et que la distribution des ISI agrégés colle.</p>
 <li>Bien saisir le rôle du <code>Transducer</code> et ce qu'un modèle couplé signifie au sens DEVS.</li>
 <li>Côté expérience, cerner quoi afficher et quelles données sont réellement importantes à analyser.</li>
 <li>Généraliser le seed en classe me donne du fil à retordre, mais m'amène à réfléchir davantage comme un ingénieur logiciel, ce qui est positif.</li>
+</ul>
+<h2 id="semaine-6-a-8-du-8-au-26-juin-2026-markov-mmpp-et-rng-reproductible-en-reseau">Semaine 6 à 8 (du 8 au 26 juin 2026) : Markov, MMPP et RNG reproductible en réseau<a class="headerlink" href="#semaine-6-a-8-du-8-au-26-juin-2026-markov-mmpp-et-rng-reproductible-en-reseau" title="Permanent link">&para;</a></h2>
+<p>Objectif d'exploration : passer du neurone de Poisson homogène à un neurone dont le
+taux est modulé par une chaîne de Markov cachée (MMPP), en construisant d'abord la
+carte conceptuelle qui situe Markov, MMPP et les G-networks les uns par rapport aux
+autres, puis en consolidant la couche RNG en une classe reproductible à l'échelle
+d'un réseau. La semaine 7 était une pause (examens finaux), donc la matière se
+concentre sur les semaines 6 et 8.</p>
+<h3 id="situer-markov-devs-mmpp-et-les-g-networks">Situer Markov DEVS, MMPP et les G-networks<a class="headerlink" href="#situer-markov-devs-mmpp-et-les-g-networks" title="Permanent link">&para;</a></h3>
+<p>Avant d'implémenter quoi que ce soit, j'ai eu besoin de comprendre que ces trois
+noms ne vivent pas au même niveau. Les confondre menait à une roadmap floue.</p>
+<ul>
+<li><strong>Markov DEVS</strong> (chapitres 21-22 de Zeigler) n'est pas un modèle biologique mais
+  un <em>patron de spécification</em> : DEVS où les durées de séjour dans chaque état sont
+  tirées d'une exponentielle dont le taux dépend de l'état courant, gouvernées par
+  une chaîne de Markov à temps continu (CTMC). C'est la mécanique générique.</li>
+<li><strong>MMPP</strong> (<em>Markov-Modulated Poisson Process</em>) est un modèle pour <em>un</em> neurone. Le
+  neurone tire encore ses spikes selon un Poisson, mais le taux <span class="arithmatex">\(\lambda\)</span> n'est
+  plus constant : une CTMC cachée fait basculer le système entre régimes (repos
+  <span class="arithmatex">\(\lambda_0 = 5\)</span> Hz, actif <span class="arithmatex">\(\lambda_1 = 40\)</span> Hz) et fixe le <span class="arithmatex">\(\lambda\)</span> courant.
+  Deux processus imbriqués : la chaîne module, le Poisson génère. C'est l'extension
+  directe de mon <code>PoissonNeuron</code>.</li>
+<li><strong>G-networks</strong> (Gelenbe) sont d'un tout autre ordre : un modèle de <em>réseau</em> de
+  files d'attente, pas d'un neurone isolé. Leur signature est le <strong>signal négatif</strong>
+  (un spike inhibiteur qui <em>retire</em> du travail à la file destinataire, là où un
+  client positif en ajoute). C'est la métaphore excitation / inhibition, et Gelenbe
+  a explicitement relié ses <em>Random Neural Networks</em> à ce formalisme.</li>
+</ul>
+<p>La hiérarchie que je retiens :</p>
+<table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Niveau</th>
+<th>Ce qu'il modélise</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Markov DEVS</td>
+<td>méta-formalisme / spécification</td>
+<td>mécanique CTMC générique dans DEVS</td>
+</tr>
+<tr>
+<td>MMPP</td>
+<td>un neurone</td>
+<td>taux Poisson modulé par une CTMC</td>
+</tr>
+<tr>
+<td>G-networks</td>
+<td>un réseau</td>
+<td>neurones couplés, signaux <span class="arithmatex">\(\pm\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>Conséquence pour la roadmap : MMPP est ma prochaine étape (un neurone, dans la
+continuité directe du Poisson), les G-networks viennent après (un réseau, donc un
+saut d'échelle), et Markov DEVS est le socle commun dont les deux héritent.</p>
+<h3 id="randomstream-reproductibilite-par-arbre-de-graines">RandomStream : reproductibilité par arbre de graines<a class="headerlink" href="#randomstream-reproductibilite-par-arbre-de-graines" title="Permanent link">&para;</a></h3>
+<p>Le refactor du RNG en classe (<code>rng.py</code>) répond à une question qui devient centrale
+dès qu'on quitte le neurone isolé : comment garder une simulation reproductible
+quand elle contient plusieurs sources aléatoires, et surtout quand on <em>ajoute</em> une
+source sans vouloir perturber les autres ?</p>
+<p>L'idée que j'ai dû assimiler est celle de <code>SeedSequence</code> de NumPy. Une
+<code>SeedSequence</code> n'est pas un générateur : c'est une <strong>graine dérivable</strong>, un noeud
+dans un arbre. La racine porte la graine entière (42) ; on en dérive des enfants,
+et des petits-enfants, chaque noeud produisant un flux statistiquement indépendant.
+Seules les feuilles (les <code>Generator</code>) tirent réellement des nombres.</p>
+<p>Deux opérations structurent l'arbre. <code>spawn(label)</code> rend un générateur prêt à
+l'emploi, pour un modèle feuille (un neurone qui consomme du hasard).
+<code>spawn_stream(label)</code> rend un <code>RandomStream</code> enfant, pour un propriétaire
+intermédiaire (un réseau qui distribue des sous-flux à ses noeuds sans consommer
+lui-même).</p>
+<div class="highlight"><pre><span></span><code><span class="n">root</span> <span class="o">=</span> <span class="n">RandomStream</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">layer</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">spawn_stream</span><span class="p">(</span><span class="s2">&quot;layer_1&quot;</span><span class="p">)</span>   <span class="c1"># noeud intermédiaire</span>
+<span class="n">neuron_A</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="s2">&quot;spikes&quot;</span><span class="p">)</span>       <span class="c1"># feuille, générateur réel</span>
+</code></pre></div>
+<p>Le point conceptuel qui m'a demandé le plus de réflexion est la <strong>dérivation par
+nom plutôt que par compteur</strong>. La position d'un noeud dans l'arbre est encodée par
+le hachage de son label, pas par un compteur incrémental. Conséquence : <code>spawn</code>
+devient <em>order-independent</em>. Dériver <code>"spikes"</code> avant ou après <code>"voltage"</code> donne
+toujours le même sous-flux pour <code>"spikes"</code>. C'est exactement la garantie
+nécessaire pour un réseau : ajouter un neurone à un G-network ne doit pas
+invalider les trains de spikes des neurones déjà présents.</p>
+<p>Le dernier maillon est le choix de <strong>BLAKE2b</strong> pour hacher les labels plutôt que
+le <code>hash()</code> natif de Python. Ce dernier est salé par processus
+(<code>PYTHONHASHSEED</code>) comme mesure de sécurité, donc <code>hash("spikes")</code> change d'une
+exécution à l'autre et casserait toute reproductibilité inter-run. BLAKE2b, hachage
+cryptographique, rend toujours la même sortie pour la même entrée, sur toute
+machine. C'est ce qui fait qu'une exécution entière est déterministe à partir d'un
+seul entier.</p>
+<h3 id="de-la-ctmc-au-mmpp-ce-qui-module-et-ce-quon-observe">De la CTMC au MMPP : ce qui module et ce qu'on observe<a class="headerlink" href="#de-la-ctmc-au-mmpp-ce-qui-module-et-ce-quon-observe" title="Permanent link">&para;</a></h3>
+<p>Le coeur de la semaine 8 a été de comprendre la CTMC sous le MMPP, en trois briques
+qui s'empilent.</p>
+<p><strong>L'absence de mémoire de l'exponentielle.</strong> La loi <span class="arithmatex">\(\text{Exp}(\lambda)\)</span> est la
+seule loi continue vérifiant</p>
+<div class="arithmatex">\[
+P(T &gt; s + t \mid T &gt; s) = P(T &gt; t).
+\]</div>
+<p>Après avoir attendu <span class="arithmatex">\(s\)</span> sans événement, le temps résiduel est distribué comme un
+tirage frais : le temps déjà écoulé n'informe pas sur le temps restant. Ce n'est
+pas un détail, c'est précisément ce qui rend le processus <em>markovien</em> en temps
+continu : l'état courant suffit à décrire le futur, l'historique n'ajoute rien.</p>
+<p><strong>La matrice génératrice <span class="arithmatex">\(Q\)</span>.</strong> Elle encode toute la dynamique de la chaîne
+cachée. Ses trois règles ne sont pas arbitraires, elles découlent du sens de chaque
+terme. Sur mon exemple repos / actif :</p>
+<div class="arithmatex">\[
+Q = \begin{pmatrix} -0.5 &amp; 0.5 \\ 2.0 &amp; -2.0 \end{pmatrix}.
+\]</div>
+<ul>
+<li><span class="arithmatex">\(Q[i,j] \ge 0\)</span> hors diagonale : un taux de saut, donc jamais négatif.</li>
+<li><span class="arithmatex">\(Q[i,i] = -\sum_{j \ne i} Q[i,j]\)</span> : chaque ligne somme à zéro, la diagonale
+  n'est pas un vrai taux mais une case comptable qui absorbe le reste de sa ligne.</li>
+<li><span class="arithmatex">\(-Q[i,i] &gt; 0\)</span> : taux de sortie strictement positif, sinon l'état est
+  <em>absorbant</em> (on n'en sort jamais). Mes validations rejettent exactement ce cas.</li>
+</ul>
+<p>Ce qui casse l'intuition, c'est l'asymétrie : <span class="arithmatex">\(Q[0,1] = 0.5\)</span> mais
+<span class="arithmatex">\(Q[1,0] = 2.0\)</span>. La ligne est le point de départ, la colonne l'arrivée, et les
+deux rôles ne sont jamais interchangeables. Biologiquement ça se tient : basculer du
+repos vers l'actif (rare, <span class="arithmatex">\(0.5\)</span>/s) n'a pas de raison d'avoir le même taux que
+retomber de l'actif vers le repos (rapide, <span class="arithmatex">\(2.0\)</span>/s, l'actif est instable).</p>
+<p><strong>La distribution stationnaire <span class="arithmatex">\(\pi\)</span> et le taux effectif.</strong> <span class="arithmatex">\(\pi_i\)</span> est la
+fraction de temps passée dans l'état <span class="arithmatex">\(i\)</span> à long terme, solution de</p>
+<div class="arithmatex">\[
+\pi Q = 0, \qquad \sum_i \pi_i = 1.
+\]</div>
+<p>Intuitivement, à l'équilibre le flux repos <span class="arithmatex">\(\to\)</span> actif égale le flux actif <span class="arithmatex">\(\to\)</span>
+repos : <span class="arithmatex">\(\pi_0 \cdot 0.5 = \pi_1 \cdot 2.0\)</span>, ce qui donne <span class="arithmatex">\(\pi = (0.8, 0.2)\)</span>.
+Le neurone passe 80 % de son temps au repos, ce qui fait sens puisqu'il y reste en
+moyenne 4 fois plus longtemps (<span class="arithmatex">\(2\)</span> s contre <span class="arithmatex">\(0.5\)</span> s). C'est ici que la théorie
+devient prédiction testable, via le <strong>taux effectif</strong> pondéré par le temps de
+séjour :</p>
+<div class="arithmatex">\[
+\bar\lambda = \sum_i \pi_i \, \text{rates}_i = 0.8 \cdot 5 + 0.2 \cdot 40 = 12 \text{ Hz},
+\]</div>
+<p>soit 720 spikes attendus sur 60 s. C'est le maillon qui relie la chaîne cachée aux
+spikes qu'on compte.</p>
+<p>Pour résoudre <span class="arithmatex">\(\pi\)</span> numériquement, j'ai retenu deux idées sans entrer dans le
+détail du code : <span class="arithmatex">\(\pi Q = 0\)</span> seule a une infinité de solutions proportionnelles,
+donc on remplace l'une des équations (redondante, puisque les lignes de <span class="arithmatex">\(Q\)</span>
+somment à zéro) par la contrainte de normalisation <span class="arithmatex">\(\sum_i \pi_i = 1\)</span> ; et on
+résout par moindres carrés (<code>lstsq</code>) plutôt que par inversion exacte, comme filet
+de sécurité contre les imprécisions flottantes de <span class="arithmatex">\(Q\)</span> (ici la solution est exacte,
+mais un <span class="arithmatex">\(Q\)</span> issu d'un calcul antérieur pourrait être légèrement incohérent).</p>
+<p><strong>Le piège théorique à ne pas rater : l'ISI n'est pas exponentiel.</strong> Pour un
+Poisson, l'ISI suit <span class="arithmatex">\(\text{Exp}(\lambda)\)</span>. Pour un MMPP, non : c'est une
+<strong>mixture</strong> (parfois état lent, longs intervalles ; parfois état rapide, courts
+intervalles), donc une distribution <em>sur-dispersée</em>. La coïncidence trompeuse est
+que la <em>moyenne</em> de l'ISI vaut bien <span class="arithmatex">\(1/\bar\lambda\)</span>, mais l'égalité des moyennes
+n'entraîne pas l'égalité des lois. Superposer une <span class="arithmatex">\(\text{Exp}(\bar\lambda)\)</span> sur
+l'histogramme serait statistiquement faux, ce qui justifie que
+<code>make_mmpp_validation_figure</code> s'en abstienne là où la figure Poisson le peut.</p>
+<h3 id="le-mecanisme-dual-clock">Le mécanisme dual-clock<a class="headerlink" href="#le-mecanisme-dual-clock" title="Permanent link">&para;</a></h3>
+<p>L'implémentation du MMPP repose sur deux horloges concurrentes. Une horloge de spike
+<span class="arithmatex">\(\text{Exp}(\text{rates}[\text{current}])\)</span> donne le délai jusqu'au prochain spike ;
+une horloge de transition <span class="arithmatex">\(\text{Exp}(-Q[\text{current},\text{current}])\)</span> donne le
+délai jusqu'au prochain saut de la CTMC. <code>timeAdvance</code> retourne le minimum des deux.</p>
+<p>Le point que je voulais vraiment comprendre est <em>pourquoi on peut décrémenter
+l'horloge perdante au lieu de la re-tirer</em>. Quand le spike gagne, on émet le spike,
+on re-tire seulement l'horloge de spike, et on <strong>décrémente</strong> l'horloge de
+transition du temps écoulé plutôt que de la re-tirer à neuf. La justification est
+exactement l'absence de mémoire : le temps résiduel d'une exponentielle après avoir
+attendu <code>elapsed</code> suit la même loi qu'un tirage frais. Décrémenter ou re-tirer
+donnent donc mathématiquement la même distribution, mais décrémenter évite de
+retarder artificiellement un saut déjà en attente. Les deux horloges ne sont
+re-tirées ensemble que lors d'un vrai saut d'état (quand l'horloge de transition
+gagne).</p>
+<p>Piège d'implémentation confirmé au passage : <code>numpy.random.exponential</code> prend
+<code>scale = 1/</code><span class="arithmatex">\(\lambda\)</span> (la moyenne), pas <span class="arithmatex">\(\lambda\)</span>. Un neurone à 40 Hz s'écrit
+<code>exponential(scale=1/40)</code>, jamais <code>scale=40</code>.</p>
+<p><strong>Difficultés</strong></p>
+<ul>
+<li>Cartographier la roadmap Markov / MMPP / G-networks : comprendre que ce sont trois
+  niveaux distincts (spécification, neurone, réseau) et non trois modèles au même
+  rang.</li>
+<li>Saisir la structure en arbre de <code>rng.py</code> : pourquoi la dérivation par label plutôt
+  que par compteur, et en quoi l'<em>order-independence</em> est la condition de
+  reproductibilité dans un réseau de neurones.</li>
+<li>Comprendre le MMPP autant sur le plan théorique (matrice <span class="arithmatex">\(Q\)</span>, <span class="arithmatex">\(\pi\)</span>,
+  <span class="arithmatex">\(\bar\lambda\)</span>) que sur le plan de l'implémentation matricielle.</li>
+<li>Cerner comment analyser correctement les données du MMPP après l'expérience, en
+  particulier pourquoi l'ISI ne se compare pas à une exponentielle.</li>
 </ul>
 
 
