@@ -197,3 +197,24 @@ Ce journal documente l'avancement du projet semaine par semaine : objectifs fix�
 - Continuer de bien réviser les étapes accomplies jusqu'à maintenant pour présenter le tout au groupe Simubrain le 2 juillet 2026
 
 ---
+## Semaine 9 (29 juin au 3 juillets 2026): *Réalisation progressive du Projet*
+
+**Objectifs**
+
+- Préparer les powerpoints pour la mise en commun 2 et la présentation au groupe Simubrain
+- Réviser les concepts importants à expliquer dans les présentations (vulgarisation vs langage technique)
+
+
+**Accompli**
+
+- [X] Préparer les powerpoints pour la mise en commun 2 et la présentation au groupe Simubrain
+- [X] Réviser les concepts importants à expliquer dans les présentations (vulgarisation vs langage technique)
+
+
+**Prochaines étapes**
+
+- Appliquer les corrections suite à la présentation Simubrain pour représenter la semaine prochaine
+- Faire un modèle couplé avec chaîne de markov et neurone poisson séparés avec son expérience aussi pour comparer au MMPP 
+- Commencer G-networks
+
+---
