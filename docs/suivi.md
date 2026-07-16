@@ -218,3 +218,76 @@ Ce journal documente l'avancement du projet semaine par semaine : objectifs fix�
 - Commencer G-networks
 
 ---
+## Semaine 10 (6 juillet au 10 juillet 2026): *Réalisation progressive du Projet*
+
+**Objectifs**
+
+- Appliquer les corrections suite à la présentation au groupe Simubrain
+- Décomposer le MMPP en briques séparées : chaîne de Markov et neurone de Poisson modulé
+- Implémenter le modèle couplé et l'expérience de la version décomposée
+- Faire les tests unitaires de vérification sur les nouvelles briques
+- Comparer la version décomposée à la version monolithique
+- Git push les nouveaux ajouts
+- Présenter à Alexandre et Abdelhamid l'état d'avancement du projet et pratiquer la présentation final en même temps 
+
+**Accompli**
+
+- [X] Appliquer les corrections suite à la présentation au groupe Simubrain
+- [X] Implémenter MarkovChain (chaîne de Markov autonome publiant le taux du prochain régime, avec pré-tirage de la destination)
+- [X] Implémenter ModulatedPoissonNeuron (source de Poisson à taux modifiable en cours de simulation)
+- [X] Implémenter DecomposedMMPPExperiment et son expérience en ligne de commande
+- [X] Faire les tests unitaires de vérification sur les deux nouvelles briques et le modèle couplé
+- [X] Implémenter le test d'équivalence de Kolmogorov-Smirnov entre les deux écritures du MMPP, sur dix graines indépendantes
+- [X] Mettre à jour la structure et la roadmap du README
+- [X] Git push les nouveaux ajouts
+- [X] Présenter à Alexandre et Abdelhamid l'état d'avancement du projet et pratiquer la présentation final en même temps 
+
+**Blocages**
+
+- Le test KS rejetait systématiquement sur les ISI intra-exécution. La cause n'était pas une différence entre les modèles mais une hypothèse brisée : les ISI d'un même run sont autocorrélés (les longs intervalles se groupent dans l'état lent de la CTMC), donc le KS sous-estime la variance et rejette sur des écarts sans signification. Résolu en agrégeant une observation par graine, ce qui rend chaque entrée du test indépendante. Baisser le seuil alpha aurait été du p-hacking.
+
+**Prochaines étapes**
+
+- Corriger la portée de mon projet selon le système suivant: Quelle est le problème à résoudre? Quelle est mon hypothèse pour résoudre le problème? quelle est ma solution? Quelle est l'impact au long terme?
+
+- Corriger la dette technique du PoissonNeuron (tirage dans timeAdvance) avant de le réutiliser dans un modèle couplé
+- Commencer la famille G-networks : file de Gelenbe avec arrivées positives et négatives
+
+---
+## Semaine 11 (13 juillet au 17 juillet 2026): *Réalisation progressive du Projet*
+
+**Objectifs**
+
+- Corriger la dette technique du PoissonNeuron (pré-tirage dans l'état)
+- Étendre la couche de vérification à la mesure d'une charge stationnaire
+- Implémenter la file de Gelenbe en modèle atomique (arrivées positives et négatives, service)
+- Implémenter le modèle couplé et l'expérience de la file
+- Faire les tests unitaires de vérification sur les invariants de file
+- Valider la longueur de file moyenne contre la formule de Gelenbe
+- Git push les nouveaux ajouts
+- Corriger la portée de mon projet en refaisant la page Index du site
+- Mise à jour de la page Réalisation et Évaluation également
+
+**Accompli**
+
+- [X] Corriger PoissonNeuron : pré-tirage dans l'état, timeAdvance devient une lecture pure
+- [X] Uniformiser le contrat de payload PyPDEVS sur tous les modèles ({port: [valeur]})
+- [X] Implémenter time_average dans analysis.py : intégration d'un signal en escalier, agnostique au domaine
+- [X] Implémenter gqueue_utilization et gqueue_mean_length (formes closes de Gelenbe)
+- [X] Implémenter GQueue en modèle atomique (état transitoire pour publier la longueur, invariant file vide / horloge infinie, perte silencieuse des négatifs sur file vide)
+- [X] Implémenter GQueueExperiment réutilisant deux PoissonNeuron comme sources, le signe étant porté par le port
+- [X] Faire les tests unitaires de vérification sur les invariants de file et la confluence
+- [X] Valider la longueur de file moyenne contre E[N] = rho/(1-rho) : 0.4977 mesuré contre 0.5000 attendu (0.45% d'erreur)
+- [X] Recentrer le README sur le périmètre réel du projet (infrastructure de vérification, pas méta-formalisme)
+- [X] Mettre à jour les pages Réalisation, Évaluation et Index 
+- [X] Git push les nouveaux ajouts
+
+**Blocages**
+
+- Un DEVS atomique ne peut pas émettre de sortie depuis une transition externe, donc la file n'aurait publié sa longueur qu'aux départs, ratant toutes les montées. Résolu par le patron de l'état transitoire : sur une arrivée, la file s'auto-réveille avec un timeAdvance nul, publie, puis reprend son service intact. L'alternative (faire reconstruire N(t) par le runner depuis les arrivées et les départs) aurait fait fuir la sémantique file dans la couche de vérification.
+- La figure de la file était illisible : 17 619 changements sur 1800 secondes se rendent en bande pleine, dont le bord supérieur est une enveloppe de maxima locaux et non une trajectoire. Résolu par un argument --plot-window qui borne l'extrait tracé, la moyenne restant calculée sur la fenêtre entière.
+
+**Prochaines étapes**
+
+- Cas limite sans signal négatif (M/M/1) comme contrôle croisé
+- Diagrammes UML et C4, synthèse de l'architecture sur les trois familles
