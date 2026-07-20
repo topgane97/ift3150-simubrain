@@ -177,7 +177,6 @@ Le projet avance famille par famille, sur des processus de complexité croissant
 | 2 | **Infrastructure RNG** | Extraction de la couche de hasard et de la couche de vérification hors des modèles |
 | 3 | **MMPP** | Source en une brique, source en plusieurs briques, test d'équivalence |
 | 4 | **G-networks** | File de Gelenbe en plusieurs briques, comparaison à la formule de Gelenbe |
-| 5 | **Synthèse** | Formalisation de l'architecture et des trois critères sur les trois familles |
 
 Travail en **Python** avec **PyPDEVS**, sous **Git/GitHub**, avec rencontres hebdomadaires de supervision.
 
@@ -208,7 +207,7 @@ Travail en **Python** avec **PyPDEVS**, sous **Git/GitHub**, avec rencontres heb
 | **Semaines 9–10**<br>29 juin → 10 juillet | Version MMPP en plusieurs briques (mécanisme de commutation + source à rythme variable) · **test d'équivalence de Kolmogorov-Smirnov** entre les deux versions | **Critère de niveau 3 : équivalence entre écritures** |
 | **Semaine 11**<br>13 → 17 juillet | File de Gelenbe en plusieurs briques (arrivées positives et négatives, service) · invariants de file · expérience couplée | Famille G-networks : file de Gelenbe assemblée |
 | **Semaine 12**<br>20 → 24 juillet | Conformité de la file de Gelenbe à \(\rho = \lambda^+/(\mu + \lambda^-)\) · cas limite sans signal négatif (M/M/1) | **Trois familles validées · code gelé** |
-| **Semaine 13**<br>27 → 31 juillet | Diagrammes UML (classes en couches,C4) · synthèse de l'architecture et des trois critères · finalisation du dépôt (README, exemples reproductibles) et début du rapport final · Foire : kiosque de démonstration | Synthèse architecturale · démo · dépôt finalisé | 
+| **Semaine 13**<br>27 → 31 juillet | Diagrammes UML (classes en couches,C4) · finalisation du dépôt (README, exemples reproductibles) et début du rapport final · Foire : kiosque de démonstration | Synthèse architecturale · démo · dépôt finalisé | 
 | **Semaine 14**<br>3 → 7 août | Continuer la rédaction du rapport final (problème, hypothèse, solution, impact) et début de la préparation à la présentation finale | **Rapport final remis le 7 août** |
 | **Semaine 15**<br>10 → 14 août | Préparation et présentation finale (25 min) | Présentation finale |
 
