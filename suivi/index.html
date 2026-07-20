@@ -573,6 +573,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#semaine-10-6-juillet-au-10-juillet-2026-realisation-progressive-du-projet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semaine 10 (6 juillet au 10 juillet 2026): Réalisation progressive du Projet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#semaine-11-13-juillet-au-17-juillet-2026-realisation-progressive-du-projet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semaine 11 (13 juillet au 17 juillet 2026): Réalisation progressive du Projet
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -798,6 +820,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#semaine-10-6-juillet-au-10-juillet-2026-realisation-progressive-du-projet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semaine 10 (6 juillet au 10 juillet 2026): Réalisation progressive du Projet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#semaine-11-13-juillet-au-17-juillet-2026-realisation-progressive-du-projet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semaine 11 (13 juillet au 17 juillet 2026): Réalisation progressive du Projet
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1009,6 +1053,81 @@
 <li>Commencer G-networks</li>
 </ul>
 <hr />
+<h2 id="semaine-10-6-juillet-au-10-juillet-2026-realisation-progressive-du-projet">Semaine 10 (6 juillet au 10 juillet 2026): <em>Réalisation progressive du Projet</em><a class="headerlink" href="#semaine-10-6-juillet-au-10-juillet-2026-realisation-progressive-du-projet" title="Permanent link">&para;</a></h2>
+<p><strong>Objectifs</strong></p>
+<ul>
+<li>Appliquer les corrections suite à la présentation au groupe Simubrain</li>
+<li>Décomposer le MMPP en briques séparées : chaîne de Markov et neurone de Poisson modulé</li>
+<li>Implémenter le modèle couplé et l'expérience de la version décomposée</li>
+<li>Faire les tests unitaires de vérification sur les nouvelles briques</li>
+<li>Comparer la version décomposée à la version monolithique</li>
+<li>Git push les nouveaux ajouts</li>
+<li>Présenter à Alexandre et Abdelhamid l'état d'avancement du projet et pratiquer la présentation final en même temps </li>
+</ul>
+<p><strong>Accompli</strong></p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Appliquer les corrections suite à la présentation au groupe Simubrain</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Implémenter MarkovChain (chaîne de Markov autonome publiant le taux du prochain régime, avec pré-tirage de la destination)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Implémenter ModulatedPoissonNeuron (source de Poisson à taux modifiable en cours de simulation)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Implémenter DecomposedMMPPExperiment et son expérience en ligne de commande</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Faire les tests unitaires de vérification sur les deux nouvelles briques et le modèle couplé</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Implémenter le test d'équivalence de Kolmogorov-Smirnov entre les deux écritures du MMPP, sur dix graines indépendantes</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Mettre à jour la structure et la roadmap du README</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Git push les nouveaux ajouts</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Présenter à Alexandre et Abdelhamid l'état d'avancement du projet et pratiquer la présentation final en même temps </li>
+</ul>
+<p><strong>Blocages</strong></p>
+<ul>
+<li>Le test KS rejetait systématiquement sur les ISI intra-exécution. La cause n'était pas une différence entre les modèles mais une hypothèse brisée : les ISI d'un même run sont autocorrélés (les longs intervalles se groupent dans l'état lent de la CTMC), donc le KS sous-estime la variance et rejette sur des écarts sans signification. Résolu en agrégeant une observation par graine, ce qui rend chaque entrée du test indépendante. Baisser le seuil alpha aurait été du p-hacking.</li>
+</ul>
+<p><strong>Prochaines étapes</strong></p>
+<ul>
+<li>
+<p>Corriger la portée de mon projet selon le système suivant: Quelle est le problème à résoudre? Quelle est mon hypothèse pour résoudre le problème? quelle est ma solution? Quelle est l'impact au long terme?</p>
+</li>
+<li>
+<p>Corriger la dette technique du PoissonNeuron (tirage dans timeAdvance) avant de le réutiliser dans un modèle couplé</p>
+</li>
+<li>Commencer la famille G-networks : file de Gelenbe avec arrivées positives et négatives</li>
+</ul>
+<hr />
+<h2 id="semaine-11-13-juillet-au-17-juillet-2026-realisation-progressive-du-projet">Semaine 11 (13 juillet au 17 juillet 2026): <em>Réalisation progressive du Projet</em><a class="headerlink" href="#semaine-11-13-juillet-au-17-juillet-2026-realisation-progressive-du-projet" title="Permanent link">&para;</a></h2>
+<p><strong>Objectifs</strong></p>
+<ul>
+<li>Corriger la dette technique du PoissonNeuron (pré-tirage dans l'état)</li>
+<li>Étendre la couche de vérification à la mesure d'une charge stationnaire</li>
+<li>Implémenter la file de Gelenbe en modèle atomique (arrivées positives et négatives, service)</li>
+<li>Implémenter le modèle couplé et l'expérience de la file</li>
+<li>Faire les tests unitaires de vérification sur les invariants de file</li>
+<li>Valider la longueur de file moyenne contre la formule de Gelenbe</li>
+<li>Git push les nouveaux ajouts</li>
+<li>Corriger la portée de mon projet en refaisant la page Index du site</li>
+<li>Mise à jour de la page Réalisation et Évaluation également</li>
+</ul>
+<p><strong>Accompli</strong></p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Corriger PoissonNeuron : pré-tirage dans l'état, timeAdvance devient une lecture pure</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Uniformiser le contrat de payload PyPDEVS sur tous les modèles ({port: [valeur]})</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Implémenter time_average dans analysis.py : intégration d'un signal en escalier, agnostique au domaine</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Implémenter gqueue_utilization et gqueue_mean_length (formes closes de Gelenbe)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Implémenter GQueue en modèle atomique (état transitoire pour publier la longueur, invariant file vide / horloge infinie, perte silencieuse des négatifs sur file vide)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Implémenter GQueueExperiment réutilisant deux PoissonNeuron comme sources, le signe étant porté par le port</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Faire les tests unitaires de vérification sur les invariants de file et la confluence</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Valider la longueur de file moyenne contre E[N] = rho/(1-rho) : 0.4977 mesuré contre 0.5000 attendu (0.45% d'erreur)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Recentrer le README sur le périmètre réel du projet (infrastructure de vérification, pas méta-formalisme)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Mettre à jour les pages Réalisation, Évaluation et Index </li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Git push les nouveaux ajouts</li>
+</ul>
+<p><strong>Blocages</strong></p>
+<ul>
+<li>Un DEVS atomique ne peut pas émettre de sortie depuis une transition externe, donc la file n'aurait publié sa longueur qu'aux départs, ratant toutes les montées. Résolu par le patron de l'état transitoire : sur une arrivée, la file s'auto-réveille avec un timeAdvance nul, publie, puis reprend son service intact. L'alternative (faire reconstruire N(t) par le runner depuis les arrivées et les départs) aurait fait fuir la sémantique file dans la couche de vérification.</li>
+<li>La figure de la file était illisible : 17 619 changements sur 1800 secondes se rendent en bande pleine, dont le bord supérieur est une enveloppe de maxima locaux et non une trajectoire. Résolu par un argument --plot-window qui borne l'extrait tracé, la moyenne restant calculée sur la fenêtre entière.</li>
+</ul>
+<p><strong>Prochaines étapes</strong></p>
+<ul>
+<li>Cas limite sans signal négatif (M/M/1) comme contrôle croisé</li>
+<li>Diagrammes UML et C4, synthèse de l'architecture sur les trois familles</li>
+</ul>
 
 
 
