@@ -12,21 +12,21 @@ title: Évaluation & Discussion
 
 # Évaluation
 
-*Dernière mise à jour : semaine 11 (mi-juillet 2026).*
+*Dernière mise à jour : semaine 12 (fin juillet 2026).*
 
 Cette page présente la stratégie de test, les résultats obtenus sur les trois familles de processus, leur interprétation et les limites actuelles.
 
 ## Méthodes de validation
 
-La validation opère selon les trois critères de correction posés en hypothèse. Chacun a une nature propre, et le projet les garde volontairement séparés : les tests automatisés vérifient ce qui est déterministe, les expériences valident ce qui est statistique, et le test d'équivalence tranche une question qu'aucun des deux ne pose.
+La validation opère selon les trois critères de correction posés en hypothèse. Chacun a une nature propre, et le projet les garde volontairement séparés : les tests automatisés vérifient ce qui est déterministe, les campagnes valident ce qui est statistique, et le test d'équivalence tranche une question qu'aucun des deux ne pose.
 
 ### Critère 1 : les invariants
 
-La suite pytest (122 tests) couvre les invariants structurels et déterministes, sans lancer de simulation dans la grande majorité des cas.
+La suite pytest compte **142 tests**, dont la grande majorité ne lance aucune simulation.
 
-Côté structure : le câblage des sous-modèles, les gardes de validité qui lèvent une exception (`rate > 0` pour le neurone de Poisson ; pour le MMPP et la chaîne de Markov, taux strictement positifs, $Q$ carrée et compatible avec `rates`, lignes de somme nulle, hors-diagonale non négative, taux de sortie strictement positif ; pour la file de Gelenbe, taux de service strictement positif et longueur initiale non négative), le `timeAdvance` infini du Transducer, et l'enregistrement chronologique des couples `(temps, payload)` dans l'horizon de simulation.
+Côté structure : le câblage des sous-modèles, les gardes de validité qui lèvent une exception (`rate > 0` pour le neurone de Poisson ; pour le MMPP et la chaîne de Markov, taux strictement positifs, $Q$ carrée et compatible avec `rates`, lignes de somme nulle, hors-diagonale non négative, taux de sortie strictement positif ; pour la file de Gelenbe, taux de service strictement positif et longueur initiale non négative ; pour son assemblage, $\lambda^-$ non négatif), le `timeAdvance` infini du Transducer, et l'enregistrement chronologique des couples `(temps, payload)` dans l'horizon de simulation.
 
-Côté déterminisme : la reproductibilité par graine (deux modèles de même graine produisent exactement la même séquence de tirages), la pureté du `timeAdvance` et de l'`outputFnc`, et l'exactitude des fonctions de calcul (`compute_isi`, `theoretical_stats`, `time_average`, `gqueue_mean_length`).
+Côté déterminisme : la reproductibilité par graine (deux modèles de même graine produisent exactement la même séquence de tirages), la pureté du `timeAdvance` et de l'`outputFnc`, l'order-independence de la dérivation des flux, et l'exactitude des fonctions de calcul (`compute_isi`, `theoretical_stats`, `time_average`, `time_weighted_histogram`, `gqueue_utilization`, `gqueue_mean_length`, `gqueue_length_distribution`).
 
 Chaque famille ajoute les invariants propres à sa machine à états :
 
@@ -34,23 +34,43 @@ Chaque famille ajoute les invariants propres à sa machine à états :
 |---------|-------------------------------|
 | **MMPP** | Résolution des deux horloges concurrentes (victoire du spike, victoire de la transition, priorité au spike en cas d'égalité) · décrément de l'horloge de transition plutôt que re-tirage quand un spike gagne · généricité du nombre d'états (une chaîne à trois états simule sans cas particulier) |
 | **MarkovChain** | Le taux publié par `outputFnc` est exactement celui de l'état auquel `intTransition` s'engage (cohérence du pré-tirage de destination) |
-| **G-queue** | $n \geq 0$ sous rafale de signaux négatifs · l'invariant $n = 0 \iff t_{\text{service}} = \infty$ survit à chaque chemin (départ, destruction, arrivée) · perte silencieuse d'un négatif sur file vide · conservation du résiduel de service lors d'une arrivée · confluence départ-puis-arrivée |
+| **G-queue** | $n \geq 0$ sous rafale de signaux négatifs · l'invariant $n = 0 \iff t_{\text{service}} = \infty$ survit à chaque chemin (départ, destruction, arrivée) · perte silencieuse d'un négatif sur file vide · conservation du résiduel de service lors d'une arrivée · le pas transitoire de publication ne consomme ni ne re-tire le service pendant · confluence départ-puis-arrivée |
+| **Assemblage de la file** | Les deux sources sont des `PoissonNeuron` ordinaires, non typés · `departure_out` reste non câblé · les sous-flux frères sont indépendants · le cas $\lambda^- = 0$ retire un sous-modèle de l'assemblage, il ne le rend pas silencieux · omettre la source négative ne déplace pas le flux positif |
 
-La confluence mérite d'être signalée. PyPDEVS applique par défaut `intTransition` puis `extTransition` quand un départ et une arrivée coïncident. Ce comportement est correct pour la file de Gelenbe, mais le projet ne s'en remet pas au défaut : deux tests l'assertent directement, de sorte qu'un changement de version de la librairie ne pourrait pas modifier silencieusement la sémantique du modèle.
+Deux points méritent d'être signalés.
 
-Aucun de ces tests ne vérifie que le taux empirique tombe près de sa valeur théorique. C'est le principe directeur de la stratégie : une assertion portant sur une grandeur aléatoire serait soit instable, soit trivialement vraie. Tester le déterminisme et valider le hasard sont deux activités distinctes, et les mélanger affaiblirait les deux.
+**La confluence.** PyPDEVS applique par défaut `intTransition` puis `extTransition` quand un départ et une arrivée coïncident. Ce comportement est correct pour la file de Gelenbe, mais le projet ne s'en remet pas au défaut : deux tests l'assertent directement, de sorte qu'un changement de version de la librairie ne pourrait pas modifier silencieusement la sémantique du modèle.
+
+**L'assertion du cas M/M/1.** Elle avait d'abord été écrite sur l'attribut de couplage entrant d'un port, un attribut interne non documenté de PyPDEVS, ce qui couplait le test à la structure de la librairie. Elle a été remplacée par un comptage de sous-modèles via l'API publique : l'assemblage sans destruction contient exactement un composant de moins. La preuve comportementale, elle, reste portée par la campagne de conformité M/M/1 décrite plus bas.
+
+Aucun de ces tests ne vérifie que le taux empirique tombe près de sa valeur théorique. C'est le principe directeur de la stratégie : une assertion portant sur une grandeur aléatoire serait soit instable, soit trivialement vraie. Tester le déterminisme et valider le hasard sont deux activités distinctes, et les mélanger affaiblirait les deux. Les tests statistiques vivent d'ailleurs dans des modules séparés (`test_mmpp_equivalence.py`, `test_gqueue_conformance.py`), qui dominent le temps d'exécution de la suite alors que les tests de câblage sont instantanés.
 
 ### Critère 2 : la conformité à la théorie
 
-La validation statistique est confiée aux expériences en ligne de commande. Dans chaque cas, la prédiction est calculée **à partir des seuls paramètres du modèle**, jamais de sa sortie.
+Dans chaque cas, la prédiction est calculée **à partir des seuls paramètres du modèle**, jamais de sa sortie. Le runner de la file va jusqu'à calculer la prédiction *avant* de lancer la simulation, ce qui rend structurellement impossible d'ajuster la théorie aux données.
 
-| Famille | Prédiction | Grandeur validée |
-|---------|-----------|------------------|
-| **Poisson** | $\mathbb{E}[N(T)] = \lambda T$, $\mathbb{E}[\text{ISI}] = 1/\lambda$ | Compte de spikes |
-| **MMPP** | $\bar\lambda = \sum_i \pi_i \lambda_i$, avec $\pi$ la stationnaire de la CTMC | Compte de spikes |
-| **G-queue** | $\rho = \lambda^+/(\mu + \lambda^-)$, $\mathbb{E}[N] = \rho/(1-\rho)$ | Longueur moyenne de file |
+| Famille | Prédiction | Grandeur validée | Dispositif |
+|---------|-----------|------------------|------------|
+| **Poisson** | $\mathbb{E}[N(T)] = \lambda T$, $\mathbb{E}[\text{ISI}] = 1/\lambda$ | Compte de spikes | Exécution unique |
+| **MMPP** | $\bar\lambda = \sum_i \pi_i \lambda_i$, avec $\pi$ la stationnaire de la CTMC | Compte de spikes | Exécution unique |
+| **G-queue** | $\rho = \lambda^+/(\mu + \lambda^-)$, $\mathbb{E}[N] = \rho/(1-\rho)$ | Longueur moyenne de file | Campagne de huit graines, IC de Student |
+| **G-queue, loi entière** | $P(N = n) = (1-\rho)\rho^n$ | Occupation temporelle par longueur | Exécution unique, tolérance absolue |
 
 Pour les deux premières familles, l'intervalle de confiance à 95 % sur le compte vient de l'approximation normale $\mu \pm 1.96\sqrt{\mu}$. Pour la file de Gelenbe, la grandeur validée n'est pas un compte d'événements mais une **charge stationnaire**, ce qui a demandé une extension de la couche de vérification décrite plus bas.
+
+**Le passage d'une tolérance à un intervalle de confiance.** Le test d'intégration de la file comparait initialement la longueur moyenne à $\mathbb{E}[N]$ avec une tolérance relative de 15 % sur une graine unique. C'était une bande pragmatique, pas un test statistique, et c'était la seule dette explicitement nommée sur cette page. Le problème est qu'une tolérance fixe ne distingue pas un modèle correct d'un seuil simplement généreux : elle passe ou échoue sans qu'on sache pourquoi, et le verdict dépend d'un nombre que personne n'a dérivé.
+
+La version en place applique la même discipline que le test d'équivalence, à savoir **une observation par exécution indépendante**. Chaque graine produit une moyenne temporelle $\bar N_k$, ces $K$ valeurs sont i.i.d. entre graines, et on construit un intervalle de confiance autour de leur moyenne,
+
+$$
+\text{IC}_{95} = \bar{\bar N} \pm t_{0.975,\,K-1}\,\frac{s}{\sqrt{K}},
+$$
+
+avant de vérifier que la forme close $\rho/(1-\rho)$ tombe dedans. Le quantile de Student plutôt que celui de la normale, parce que $K$ vaut 8 et que l'écart-type est estimé sur l'échantillon, pas connu ; utiliser 1.96 sous-estimerait la largeur de l'intervalle et rendrait le test faussement sévère.
+
+L'intérêt n'est pas d'être « plus strict » au sens naïf, puisqu'un intervalle construit sur peu de graines peut être large. Ce qui change est la **nature de l'affirmation** : un intervalle bâti sur la dispersion observée échoue exactement quand le biais dépasse le bruit, ce qui est la question posée.
+
+**Le contrôle croisé M/M/1.** Le même dispositif tourne avec $\lambda^- = 0$, configuration où la formule de Gelenbe doit dégénérer en la charge M/M/1 classique $\rho = \lambda^+/\mu$. Ce n'est pas une famille nouvelle mais un contrôle croisé : même modèle, même forme close, canal de destruction retiré. Son intérêt tient à ce que la valeur validée est **réellement différente** ($\mathbb{E}[N] = 0.6667$ contre $0.5000$ au cas de référence). Une implémentation qui ignorerait le canal de destruction passerait donc le cas de référence et échouerait sur le cas limite : les deux configurations discriminent entre les deux lectures possibles de la place de $\lambda^-$ dans $\rho$. Un troisième test, purement directionnel, vérifie sans aucune forme close que retirer la destruction augmente la longueur moyenne observée, ce qui attraperait un bug de câblage laissant la source négative connectée.
 
 ### Critère 3 : l'équivalence entre écritures
 
@@ -58,9 +78,13 @@ Le test d'équivalence compare les distributions produites par le MMPP en une br
 
 Deux statistiques sont comparées : le **compte de spikes par graine**, qui teste l'échelle et la signature de sur-dispersion du MMPP, et l'**ISI moyen par graine**, résumé scalaire de la position de la loi des ISI.
 
-Le choix d'agréger **une observation par exécution** plutôt que d'utiliser la séquence des ISI intra-exécution est le point méthodologique central de ce test, et il n'est pas cosmétique. Le KS suppose des échantillons i.i.d. Or la séquence des ISI d'un même run viole cette hypothèse : les longs intervalles se groupent dans l'état lent de la CTMC, donc les ISI sont autocorrélés. Avec environ 1400 ISI corrélés par exécution, la variance de la fonction de répartition empirique est sous-estimée, et le test rejette sur des écarts de 6 à 7 % qui ne signalent aucune différence réelle. C'est un faux positif dû à une hypothèse brisée, pas une découverte. Agréger par graine rend chaque entrée du KS indépendante des autres.
+**Pourquoi les deux écritures ne peuvent pas coïncider trace pour trace.** Il faut être précis ici, parce que l'imprécision contredirait l'argument central de la couche de hasard. Ce n'est pas une question d'ordre de consommation : la dérivation par étiquette est order-independent par construction, donc l'ordre d'instanciation ne peut rien changer. Ce qui diffère est le **chemin de dérivation** menant à chaque générateur. Le monolithe descend par `"neuron"` puis `"spikes"` et `"transitions"` ; le décomposé descend par `"markov"` menant à `"transitions"` et par `"poisson"` menant à `"spikes"`. Les rôles se correspondent un pour un, mais les clés diffèrent, donc les générateurs sont amorcés différemment et ne produisent pas les mêmes nombres. S'y ajoute une divergence interne : la chaîne autonome pré-tire son état de destination dès la construction, là où le monolithe le tire au moment du saut. Exiger des traces identiques déclarerait donc fausse toute décomposition, y compris les correctes.
 
-Le coût est explicite : on perd de la résolution sur la **forme** de la loi des ISI. Cette affirmation plus fine est laissée aux figures de comptage cumulé, qui montrent déjà la sur-dispersion partagée par les deux écritures. Baisser le seuil $\alpha$ pour faire passer le test sur les ISI intra-run aurait été du *p-hacking*.
+**Pourquoi agréger une observation par exécution.** C'est le point méthodologique central de ce test, et il n'est pas cosmétique. Le KS suppose des échantillons i.i.d. Or la séquence des ISI d'un même run viole cette hypothèse : les longs intervalles se groupent dans l'état lent de la CTMC, donc les ISI sont autocorrélés. Avec environ 1400 ISI corrélés par exécution, la variance de la fonction de répartition empirique est sous-estimée, le test croit disposer de bien plus d'information indépendante qu'il n'en a réellement, et il rejette sur des écarts triviaux. Les essais sur les ISI bruts produisaient ainsi des p-values de l'ordre de $10^{-3}$ pour un écart maximal entre courbes inférieur à 7 %, un faux positif dû à une hypothèse brisée et non une découverte. Agréger par graine rend chaque entrée du KS indépendante des autres.
+
+Le coût est explicite : on perd de la résolution sur la **forme** de la loi des ISI. Cette affirmation plus fine est laissée aux figures de comptage cumulé, qui montrent déjà la sur-dispersion partagée par les deux écritures. Baisser le seuil $\alpha$ pour faire passer le test sur les ISI intra-run aurait été du *p-hacking*, c'est-à-dire corriger le verdict au lieu de corriger l'entrée.
+
+**Ce que le test ne dit pas.** Un KS non significatif ne prouve pas l'hypothèse nulle, il échoue à la rejeter. La réserve est d'autant plus nécessaire que le pouvoir du test est faible : deux échantillons de dix valeurs ne détectent qu'un écart distributionnel important. La conclusion correcte est donc « aucun test statistique n'est parvenu à distinguer les deux écritures, à ce pouvoir et sur ces graines », jamais « les deux écritures sont identiques ».
 
 ## Extension de la couche de vérification pour la file de Gelenbe
 
@@ -76,11 +100,15 @@ $$
 
 Cette fonction ne sait pas qu'il s'agit d'une file. Elle intègre un signal constant par morceaux, point. Son paramètre `initial_value` est **obligatoire** : la fonction ne devine pas la valeur du signal sur $[0, t_0)$. Pour la file de Gelenbe, l'appelant passe 0 ; le fait qu'il doive le dire explicitement rend l'hypothèse visible plutôt que cachée dans une valeur par défaut.
 
-Un obstacle technique a dû être franchi au passage. Un modèle DEVS atomique ne peut pas émettre de sortie depuis une transition externe : `length_out` n'aurait donc publié que les **départs**, ratant toutes les montées de $n$. La solution retenue est le patron DEVS standard de l'état transitoire : sur une arrivée, la file s'auto-réveille avec un `timeAdvance` nul, publie la nouvelle longueur, puis reprend son service en cours. Le service pendant n'est ni consommé ni re-tiré par ce passage, ce qu'un test vérifie explicitement.
+**Le warm-up.** La file démarre vide, ce qui n'est pas un tirage de la loi stationnaire mais une valeur particulière qu'on a choisie. Le transitoire initial est donc systématiquement biaisé vers le bas, et c'est un biais et non du bruit : allonger la simulation le dilue sans l'éliminer, alors que le retirer explicitement le supprime. Les cent premières secondes sont écartées. Ce chiffre n'est pas arbitraire : le temps de relaxation est de l'ordre de $1/[(\mu + \lambda^-)(1-\rho)^2] \approx 0.19$ s au cas de référence, donc cent secondes représentent plusieurs centaines de temps de relaxation, pour un coût de 5 % de la fenêtre. Le dimensionnement dépend de $\rho$ et non d'une valeur absolue ; à charge élevée, le même calcul donnerait plusieurs secondes et cent secondes deviendrait tout juste confortable.
+
+**De la moyenne à la loi entière.** La moyenne n'est que le premier moment, et deux lois différentes peuvent la partager. La couche a donc été étendue une troisième fois, symétriquement : `gqueue_length_distribution` donne la loi géométrique prédite $(1-\rho)\rho^n$ à partir des seuls taux, et `time_weighted_histogram` donne son pendant empirique en accumulant le temps de séjour à chaque valeur. La pondération par le temps est le point : la loi stationnaire est par définition une fraction de temps, donc une longueur atteinte souvent mais quittée immédiatement ne doit presque rien peser. Compter les changements donnerait le même poids à un état traversé en 10 ms qu'à un état tenu dix secondes, et gonflerait artificiellement la queue de distribution.
+
+**Un obstacle technique franchi au passage.** Un modèle DEVS atomique ne peut pas émettre de sortie depuis une transition externe : `length_out` n'aurait donc publié que les **départs**, ratant toutes les montées de $n$. La solution retenue est le patron DEVS standard de l'état transitoire : sur une arrivée, la file s'auto-réveille avec un `timeAdvance` nul, publie la nouvelle longueur, puis reprend son service en cours. Le service pendant n'est ni consommé ni re-tiré par ce passage, ce qu'un test vérifie explicitement.
 
 ## Résultats obtenus
 
-La suite pytest passe entièrement au vert (122 tests), confirmant les invariants structurels et déterministes des modèles, de la couche RNG et de la couche d'analyse.
+La suite pytest passe entièrement au vert (**142 tests**), confirmant les invariants structurels et déterministes des modèles, de la couche RNG et de la couche d'analyse, ainsi que les campagnes statistiques des critères 2 et 3.
 
 ### Neurone de Poisson homogène
 
@@ -122,11 +150,15 @@ La même validation est lancée sur l'écriture décomposée :
 
     python -m simubrain.experiments.run_decomposed_mmpp_experiment --duration 60 --seed 42
 
-La `MarkovChain` publie les changements de taux, le `ModulatedPoissonNeuron` décharge au taux courant, et le `Transducer` enregistre. Le compte tombe dans le même intervalle de confiance autour de $\bar\lambda T$, ce qui valide le critère 2 pour cette écriture.
+La `MarkovChain` publie les changements de taux, le `ModulatedPoissonNeuron` décharge au taux courant, et le `Transducer` enregistre.
+
+Le diagnostic mené sur cette écriture mérite d'être rapporté, parce qu'il éclaire le bon critère de validation d'un MMPP. À graine 42, le compte tombe à 666 spikes, soit un cheveu sous la borne basse de l'intervalle de Poisson. Une valeur hors intervalle n'a rien d'alarmant en soi, mais tomber exactement à la frontière méritait un diagnostic plutôt qu'un haussement d'épaules, entre deux hypothèses non équivalentes : le hasard de cette graine, ou un biais systématique de la décomposition. Le test discriminant a consisté à relancer sur d'autres graines. Les graines 1, 7 et 100 donnent 824, 623 et 821 : les quatre comptes tombent hors de l'intervalle, mais **des deux côtés** de la valeur attendue, deux en dessous et deux au-dessus. Il n'y a donc pas de biais.
+
+Ce qui est instructif est l'amplitude de la dispersion, de l'ordre de $\pm 100$ là où un Poisson pur resterait à $\pm 50$. C'est la **sur-dispersion**, signature du MMPP : l'intervalle de Poisson suppose variance égale à la moyenne, alors qu'un processus modulé ajoute de la variance au-delà, puisque sur un horizon court la CTMC ne fait que quelques transitions et que chaque exécution attrape une fraction différente de temps passé dans chaque régime. Que quatre graines sur quatre sortent de l'intervalle, et non une sur vingt, est la mesure directe du fait que le gabarit ne convient pas. Le bon critère est la convergence du taux $N(t)/t \to \bar\lambda$ sur horizon long, ce que le test d'intégration mesure sur 400 secondes plutôt que sur 60.
 
 ![Figure de validation pour le MMPP décomposé sur 60 s, seed 42](images/validation_decomposed_mmpp_seed42.png)
 
-*Validation du MMPP en plusieurs briques (mêmes paramètres, 60 s, seed 42). La trajectoire diffère de celle du monolithe, ce qui est attendu : les deux écritures consomment le hasard dans un ordre différent. La figure est un contrôle visuel du câblage ; la comparaison formelle relève du test d'équivalence.*
+*Validation du MMPP en plusieurs briques (mêmes paramètres, 60 s, seed 42). La trajectoire diffère de celle du monolithe, ce qui est attendu : les deux écritures dérivent leurs générateurs le long de chemins d'étiquettes différents. La figure est un contrôle visuel du câblage ; la comparaison formelle relève du test d'équivalence.*
 
 ### Équivalence entre les deux écritures du MMPP
 
@@ -134,7 +166,7 @@ Sur dix graines indépendantes de 120 secondes, les deux tests de Kolmogorov-Smi
 
 C'est le résultat central du projet du point de vue méthodologique : il fournit l'instrument qui permet de **tester**, et non seulement d'affirmer, qu'une décomposition est une écriture valide du même modèle.
 
-### File de Gelenbe
+### File de Gelenbe : cas de référence
 
 La validation est lancée par :
 
@@ -146,7 +178,7 @@ $$
 \rho = \frac{\lambda^+}{\mu + \lambda^-} = \frac{4}{10 + 2} = 0.3333,
 $$
 
-d'où une longueur de file moyenne $\mathbb{E}[N] = \rho/(1-\rho) = 0.5$.
+d'où une longueur de file moyenne $\mathbb{E}[N] = \rho/(1-\rho) = 0.5$. Cette valeur de $\rho$ est délibérément modérée : loin de la saturation, le transitoire est court et la convergence rapide, alors qu'à charge élevée une fenêtre finie passerait l'essentiel de son temps à monter vers l'équilibre.
 
 Pour cette file simulée sur 2000 secondes (seed 42, transitoire de 100 s écarté) :
 
@@ -157,30 +189,50 @@ Pour cette file simulée sur 2000 secondes (seed 42, transitoire de 100 s écart
 
 *Validation de la file de Gelenbe ($\lambda^+ = 4$ Hz, $\lambda^- = 2$ Hz, $\mu = 10$ Hz, 2000 s, seed 42). L'escalier montre les 20 premières secondes de la fenêtre de mesure ; les deux droites horizontales sont les moyennes calculées sur la fenêtre entière.*
 
+### File de Gelenbe : campagne multi-graines et cas limite
+
+Deux campagnes de huit graines à 1500 secondes chacune, transitoire de 100 s écarté, une moyenne temporelle par graine :
+
+| Configuration | Prédiction | Résultat |
+|---------------|-----------|----------|
+| Cas de référence, $\lambda^- = 2$ | $\mathbb{E}[N] = 0.5000$ | La forme close tombe dans l'IC95 construit sur la dispersion inter-graines |
+| Cas limite M/M/1, $\lambda^- = 0$ | $\mathbb{E}[N] = 0.6667$ | La forme close tombe dans l'IC95 construit sur la dispersion inter-graines |
+| Comparaison directionnelle | sans forme close | La longueur moyenne sans destruction dépasse celle avec destruction |
+
+Les deux prédictions sont bien séparées (0.5000 contre 0.6667), donc les deux configurations discriminent effectivement entre les deux lectures de la place de $\lambda^-$ dans $\rho$.
+
+### File de Gelenbe : loi stationnaire entière
+
+La conformité ne porte plus seulement sur le premier moment. L'occupation temporelle de chaque longueur, mesurée sur la fenêtre de 1900 secondes à graine 42, est comparée à la loi géométrique $(1-\rho)\rho^n$ pour $\rho = 1/3$, sur les longueurs $n = 0$ à $3$.
+
+L'assertion se limite aux longueurs de forte occupation, et c'est délibéré : au-delà de $n = 3$, la masse prédite passe sous 1.5 %, et une exécution unique n'y séjourne pas assez longtemps pour que la fraction empirique soit significative. Asserter la queue reviendrait à tester la taille de l'échantillon, pas le modèle.
+
 ## Analyse critique
 
-L'objectif des trois étapes, valider qu'un neurone de Poisson homogène, un neurone à taux modulé par une CTMC, puis une file de Gelenbe exprimés en DEVS reproduisent la théorie, est atteint. Le critère d'équivalence est établi sur le MMPP.
+L'objectif des trois étapes, valider qu'un neurone de Poisson homogène, un neurone à taux modulé par une CTMC, puis une file de Gelenbe exprimés en DEVS reproduisent la théorie, est atteint. Le critère d'équivalence est établi sur le MMPP, et la conformité de la file est établie non plus sur un tirage mais sur une campagne.
 
 Pour le Poisson, le compte observé est à environ 0.15 écart-type sous la moyenne attendue (l'écart-type vaut $\sqrt{1200} \approx 35$ spikes), donc largement à l'intérieur de l'intervalle de confiance. Les trois métriques pointent dans la même direction, légèrement sous le nominal : ce ne sont pas trois confirmations indépendantes, mais un même déficit de quelques spikes observé sous trois angles, exactement le genre de fluctuation attendue d'un tirage unique. Visuellement, la distribution des ISI épouse la densité exponentielle et le comptage cumulé suit linéairement $\lambda t$ sans dérive.
 
-Pour le MMPP, le compte observé est à environ 0.7 écart-type au-dessus de la moyenne attendue (l'écart-type vaut $\sqrt{720} \approx 27$ spikes), bien à l'intérieur de l'intervalle de confiance. La validation porte ici sur le bon critère : le compte d'un MMPP est asymptotiquement Poisson de moyenne $\bar\lambda T$, donc c'est $\bar\lambda$ et non un taux instantané qui doit être retrouvé. C'est aussi pourquoi le panneau ISI n'a pas de superposition exponentielle : la loi des ISI d'un processus modulé est une mixture sur-dispersée, et un overlay $\text{Exp}(\bar\lambda)$ aurait été trompeur, laissant croire à un défaut là où il n'y en a pas. La moyenne des ISI coïncide bien avec $1/\bar\lambda$, mais c'est une coïncidence de moyenne, pas d'égalité de distribution. La signature en bouffées du raster et l'allure en escalier du comptage cumulé confirment visuellement la modulation.
+Pour le MMPP, le compte observé est à environ 0.7 écart-type au-dessus de la moyenne attendue (l'écart-type vaut $\sqrt{720} \approx 27$ spikes), bien à l'intérieur de l'intervalle de confiance. La validation porte ici sur le bon critère : le compte d'un MMPP est asymptotiquement Poisson de moyenne $\bar\lambda T$, donc c'est $\bar\lambda$ et non un taux instantané qui doit être retrouvé. C'est aussi pourquoi le panneau ISI n'a pas de superposition exponentielle : la loi des ISI d'un processus modulé est une mixture sur-dispersée, et un overlay $\text{Exp}(\bar\lambda)$ aurait été trompeur, laissant croire à un défaut là où il n'y en a pas. La moyenne des ISI coïncide bien avec $1/\bar\lambda$, mais c'est une coïncidence de moyenne, pas d'égalité de distribution. La signature en bouffées du raster et l'allure en escalier du comptage cumulé confirment visuellement la modulation. Le diagnostic sur quatre graines de l'écriture décomposée ajoute la contrepartie quantitative : la dispersion des comptes est bien plus large que celle d'un Poisson pur, ce qui est la démonstration empirique que la modulation fait quelque chose.
 
-Pour la file de Gelenbe, l'erreur de 0.45 % sur une fenêtre de 1900 secondes établit la conformité au régime stationnaire. L'allure de l'escalier est cohérente avec la loi géométrique attendue : la file est vide environ deux tiers du temps, monte souvent à 1, rarement à 2, et les pointes à 3 ou 4 sont exceptionnelles, ce qui correspond à $P(N = n) = (1-\rho)\rho^n$ pour $\rho = 1/3$. La moyenne de 0.5 devient visuellement plausible pour un signal qui passe la majorité de son temps à zéro.
+Pour la file de Gelenbe, l'erreur de 0.45 % sur une fenêtre de 1900 secondes établit la conformité au régime stationnaire, et la campagne de huit graines la transforme en affirmation statistique plutôt qu'en constat sur un tirage. L'allure de l'escalier est cohérente avec la loi géométrique attendue : la file est vide environ deux tiers du temps, monte souvent à 1, rarement à 2, et les pointes à 3 ou 4 sont exceptionnelles, ce qui correspond à $P(N = n) = (1-\rho)\rho^n$ pour $\rho = 1/3$. La comparaison à la loi entière rend cette lecture visuelle mesurable, et elle est strictement plus forte que la comparaison à la moyenne : deux lois différentes peuvent partager un premier moment, mais pas une distribution complète.
 
-Le point conceptuel de cette famille est la place du $\lambda^-$ dans la formule. Un client négatif ne porte aucun travail, il en **détruit**. Il agit donc comme un second canal de départ, ce qui l'inscrit au **dénominateur** de $\rho$, jamais au numérateur. Confondre les deux donnerait $\rho = (\lambda^+ - \lambda^-)/\mu = 0.2$ et une prédiction $\mathbb{E}[N] = 0.25$, deux fois trop basse : l'écart avec l'observé aurait été de 100 %, pas de 0.45 %. La validation discrimine donc effectivement entre les deux lectures.
+Le point conceptuel de cette famille est la place du $\lambda^-$ dans la formule. Un client négatif ne porte aucun travail, il en **détruit**. Il agit donc comme un second canal de départ, ce qui l'inscrit au **dénominateur** de $\rho$, jamais au numérateur. Confondre les deux donnerait $\rho = (\lambda^+ - \lambda^-)/\mu = 0.2$ et une prédiction $\mathbb{E}[N] = 0.25$, deux fois trop basse : l'écart avec l'observé aurait été de 100 %, pas de 0.45 %. Le cas limite M/M/1 renforce cette discrimination, puisqu'il exerce exactement la même mécanique sur une valeur attendue différente.
 
-Le découplage entre la couche de modèles et la couche d'analyse a été mis à l'épreuve à chaque famille, et il a tenu. Pour le MMPP, les panneaux raster et comptage cumulé ont été réutilisés tels quels, et seul le panneau ISI a dû être spécialisé, ce qui a mis au jour une fuite d'abstraction (le docstring promettait à tort la réutilisation intégrale pour toute source future) ; la correction a consisté à dire la vérité sur ce qui se réutilise, plutôt qu'à forcer une réutilisation incorrecte. Pour la file de Gelenbe, l'épreuve était plus sévère puisque la grandeur validée change de nature, et la couche a été étendue par ajout d'une fonction agnostique plutôt que par contamination : `time_average` ignore ce qu'est une file, et le `Transducer` n'a pas bougé d'une ligne pour enregistrer des longueurs plutôt que des spikes.
+Le découplage entre la couche de modèles et la couche d'analyse a été mis à l'épreuve à chaque famille, et il a tenu. Pour le MMPP, les panneaux raster et comptage cumulé ont été réutilisés tels quels, et seul le panneau ISI a dû être spécialisé, ce qui a mis au jour une fuite d'abstraction (le docstring promettait à tort la réutilisation intégrale pour toute source future) ; la correction a consisté à dire la vérité sur ce qui se réutilise, plutôt qu'à forcer une réutilisation incorrecte. Pour la file de Gelenbe, l'épreuve était plus sévère puisque la grandeur validée change de nature, et la couche a été étendue par ajout de fonctions agnostiques plutôt que par contamination : ni `time_average` ni `time_weighted_histogram` ne savent ce qu'est une file, et le `Transducer` n'a pas bougé d'une ligne pour enregistrer des longueurs plutôt que des spikes.
 
-La réutilisation du `PoissonNeuron` comme source des deux flux de la file de Gelenbe est le second résultat architectural de cette famille. Le signe n'est pas porté par la charge utile mais par le **port d'arrivée** : les deux sources sont des neurones de Poisson ordinaires, qui ignorent tout des G-networks, et c'est le modèle couplé qui décide du sens en câblant l'un sur `positive_in` et l'autre sur `negative_in`. Le routage est ainsi la responsabilité de l'assemblage, pas de la source, ce qui est exactement le découpage que le principe de responsabilité unique demande. Cette réutilisation n'aurait pas été possible si le `PoissonNeuron` avait été typé pour les spikes.
+La réutilisation du `PoissonNeuron` comme source des deux flux de la file de Gelenbe est le second résultat architectural de cette famille. Le signe n'est pas porté par la charge utile mais par le **port d'arrivée** : les deux sources sont des neurones de Poisson ordinaires, qui ignorent tout des G-networks, et c'est le modèle couplé qui décide du sens en câblant l'un sur `positive_in` et l'autre sur `negative_in`. Le routage est ainsi la responsabilité de l'assemblage, pas de la source, ce qui est exactement le découpage que le principe de responsabilité unique demande. Cette réutilisation n'aurait pas été possible si le `PoissonNeuron` avait été typé pour les spikes, ni si son tirage dans `timeAdvance` n'avait pas été corrigé au préalable.
 
-Les résultats portent toutefois sur une seule exécution par modèle pour les critères 1 et 2 : ils établissent la correction sur un cas, pas la robustesse statistique. Seul le critère 3 agrège plusieurs graines.
+Le cas limite M/M/1 donne à cette décision une confirmation inattendue. Puisque le signe vit dans le port, l'absence de canal de destruction s'exprime comme l'absence de fil, et non comme une source qu'on ferait taire. Le fait que l'assemblage sans destruction contienne littéralement un composant de moins, et que le flux de la source positive y soit inchangé bit pour bit, est la vérification conjointe de deux propriétés architecturales : le signe est bien structurel, et la dérivation des flux est bien order-independent.
+
+Les résultats restent inégaux en profondeur statistique selon les familles. La G-queue agrège huit graines et le critère d'équivalence en agrège dix, mais les familles Poisson et MMPP demeurent validées sur une exécution unique chacune : elles établissent la correction sur un cas, pas la robustesse.
 
 ## Limites du projet
 
-- **Portée des modèles** : les trois familles sont validées. Le cas limite sans signal négatif (M/M/1) reste à simuler comme contrôle croisé, et le méta-formalisme unifié n'est pas du ressort de ce projet : il est conçu par l'équipe, ce projet lui fournit l'infrastructure et les critères.
-- **Profondeur statistique** : la conformité à la théorie repose sur une exécution unique par configuration. Une campagne agrégeant plusieurs graines permettrait d'estimer la dispersion réelle plutôt que de constater un seul tirage. L'approximation normale de l'intervalle de confiance n'est fiable que pour de grands comptes attendus ; aux faibles taux ou courtes durées, des quantiles de Poisson exacts seraient préférables.
-- **Tolérance du test d'intégration de la file** : le test automatisé compare la longueur moyenne à $\mathbb{E}[N]$ avec une tolérance relative de 15 % sur une graine unique. C'est une bande pragmatique, pas un test statistique ; la version rigoureuse agrégerait plusieurs graines et bâtirait un intervalle de confiance, comme le fait le test d'équivalence. Dette assumée, à résorber si la mesure s'avère instable.
-- **Portée du critère d'équivalence** : le test porte sur le compte et l'ISI moyen agrégés par graine, pas sur la forme complète de la loi des ISI. Cette affirmation plus fine n'est étayée que visuellement.
-- **Validation de la file par la moyenne seule** : la conformité porte sur $\mathbb{E}[N]$, un seul moment. Comparer l'histogramme pondéré par le temps à la loi géométrique $(1-\rho)\rho^n$ porterait sur la distribution entière et serait un critère strictement plus fort.
-- **Portée des tests automatisés** : pytest garantit la correction structurelle et déterministe, mais l'exactitude statistique dépend d'une inspection manuelle des sorties d'expérience.
+- **Portée des modèles** : les trois familles sont validées. Le méta-formalisme unifié n'est pas du ressort de ce projet : il est conçu par l'équipe, ce projet lui fournit l'infrastructure et les critères.
+- **Profondeur statistique inégale** : la conformité de la file de Gelenbe agrège plusieurs graines, mais celle des familles Poisson et MMPP repose encore sur une exécution unique par configuration. Une campagne analogue y estimerait la dispersion réelle plutôt que de constater un seul tirage. Par ailleurs, l'approximation normale de l'intervalle de confiance n'est fiable que pour de grands comptes attendus ; aux faibles taux ou courtes durées, des quantiles de Poisson exacts seraient préférables.
+- **Tolérance de la comparaison à la loi entière** : la comparaison entre occupation temporelle et loi géométrique utilise une tolérance absolue de 0.02 sur les longueurs de forte occupation. C'est une tolérance choisie, du même genre que celle que la campagne multi-graines vient de retirer sur la moyenne. Elle est assumée pour une raison différente, à savoir que la grandeur comparée est une probabilité bornée dans $[0,1]$, ce qui n'est pas comparable à une tolérance relative sur une moyenne non bornée. La version pleinement rigoureuse serait un test du khi-deux pondéré par le temps, qui demanderait de dériver le nombre de degrés de liberté effectif d'un signal autocorrélé. Ce n'était pas faisable proprement avant le gel, et le faire mal aurait été pire que ne pas le faire.
+- **Portée du critère d'équivalence** : le test porte sur le compte et l'ISI moyen agrégés par graine, pas sur la forme complète de la loi des ISI. Cette affirmation plus fine n'est étayée que visuellement. Le pouvoir du test est en outre limité par la taille des échantillons, dix valeurs par écriture.
+- **Cohérence croisée non testée entre les deux estimateurs empiriques** : la moyenne pondérée de l'histogramme temporel doit égaler `time_average` à la précision flottante près, puisque les deux fonctions font le même découpage. Ce serait un test d'invariant gratuit, qui vérifie une relation entre deux fonctions sans calculer la réponse à la main. La suite n'assert aujourd'hui que la cohérence entre les deux formes **closes**, en vérifiant que $\sum_n n\,P(N = n)$ redonne $\mathbb{E}[N]$.
+- **Portée des tests automatisés** : pytest garantit la correction structurelle et déterministe, et porte désormais aussi les campagnes statistiques de la file. L'exactitude statistique des familles Poisson et MMPP dépend en revanche encore d'une inspection des sorties d'expérience.
 - **Dépendances externes** : la simulation repose sur PyPDEVS, et la reproductibilité dépend du générateur `default_rng` de numpy, dérivé via `RandomStream`.

@@ -442,3 +442,149 @@ Piège d'implémentation confirmé au passage : `numpy.random.exponential` prend
   $\bar\lambda$) que sur le plan de l'implémentation matricielle.
 - Cerner comment analyser correctement les données du MMPP après l'expérience, en
   particulier pourquoi l'ISI ne se compare pas à une exponentielle.
+
+## Semaine 9 à 12 (du 29 juin au 24 juillet 2026) : décomposition du MMPP, équivalence statistique et famille G-networks
+
+Objectif d'exploration : quitter le neurone isolé pour la question qui commande tout le projet, celle de la composabilité. Un même processus peut s'écrire en une brique ou en plusieurs briques reliées ; comment démontrer que les deux écritures font la même chose ? Cela a demandé de comprendre le test de Kolmogorov-Smirnov et ses pièges, puis de porter la même exigence de preuve sur une famille d'un tout autre ordre, les files de Gelenbe, en terminant par une campagne de conformité multi-graines qui remplace une tolérance pragmatique par un vrai critère statistique. La semaine 9 était surtout consacrée aux présentations (mise en commun 2, groupe SimuBrAIn), donc la matière technique se concentre sur les semaines 10 à 12.
+
+### Le pré-tirage : pourquoi une fonction de lecture ne doit jamais tirer
+
+Avant d'aborder la décomposition, il faut poser une règle que toute la suite utilise. DEVS exige que `timeAdvance` et `outputFnc` soient **pures** : appelables plusieurs fois de suite, même réponse, aucune modification de l'état. Or un modèle stochastique doit bien tirer quelque part. La contradiction se résout en tirant **à l'avance** et en rangeant le résultat dans l'état : les fonctions pures ne tirent plus, elles lisent.
+
+Sans cette règle, un simulateur qui interroge le modèle plusieurs fois avant d'agir obtient une réponse différente à chaque appel, consomme le flux aléatoire à chaque interrogation, et produit des résultats faux sans jamais planter. C'est le pire mode de défaillance possible : silencieux.
+
+Le `PoissonNeuron` a longtemps fait exception, en tirant directement dans son `timeAdvance`. Le tirage y était inoffensif tant que le modèle restait une source isolée, dont le simulateur n'interroge l'avance du temps qu'une fois par événement. Il serait devenu un bug dès son insertion dans un modèle couplé recevant des entrées, où l'avance du temps est recalculée autour des événements des voisins. La famille G-networks a rendu la correction obligatoire, puisqu'elle réutilise exactement ce modèle comme source des deux flux de la file. La dette a donc été résorbée en semaine 11, avant la file de Gelenbe et non après.
+
+### Décomposer le MMPP : deux écritures, un seul processus
+
+Le MMPP en une brique cachait deux mécanismes dans une seule classe : la chaîne de Markov qui module, et le Poisson qui décharge. La version décomposée les sépare en deux modèles atomiques reliés. La `MarkovChain` publie le taux du régime courant sur un port de sortie ; le `ModulatedPoissonNeuron` reçoit ce taux sur un port d'entrée et décharge en conséquence.
+
+Le point conceptuel que j'ai dû assimiler est qu'**émettre le taux plutôt que l'indice d'état** est ce qui garde le couplage faible. Si la chaîne publiait « je suis dans l'état 1 », la source aurait besoin de connaître la table `rates` pour traduire. En publiant directement `rates[next_state]`, la source reçoit un nombre qu'elle sait interpréter sans rien savoir de la chaîne, ni même de son existence. C'est le découplage le plus fort possible entre les deux briques.
+
+Le `MarkovChain` pousse le pré-tirage plus loin que les modèles précédents. DEVS appelle `outputFnc` **avant** `intTransition`. Pour publier le taux du prochain état sans le tirer dans `outputFnc`, il faut avoir pré-tiré non seulement la durée de séjour, mais aussi **l'état de destination** lui-même, et l'avoir rangé dans l'état. La transition interne ne fait ensuite que valider le saut déjà décidé et pré-tirer le suivant.
+
+Un piège d'implémentation confirmé par des tests qui échouaient : le contrat de message de PyPDEVS. La sortie doit être `{port: [valeur]}` et la lecture `inputs[port][0]`. J'avais d'abord écrit `{port: valeur}`, ce qui plantait dans le solveur avec un `TypeError: 'float' object is not iterable` au moment où il tentait d'étendre le sac de messages du port destinataire. Les deux échecs de tests suivants venaient du même contrat mal intégré, mais du côté des tests eux-mêmes : l'un passait `{n.rate_in: 40.0}` à `extTransition` au lieu de `{n.rate_in: [40.0]}`, l'autre assertait sur la liste entière au lieu de son premier élément. Uniformiser le contrat sur les modèles **et** sur leurs tests a réglé les trois.
+
+Le cas d'une charge utile de type chaîne mérite d'être signalé, parce qu'il est plus dangereux que l'exception. Une chaîne étant itérable, `{port: "spike"}` ne lève rien : le solveur étend le sac avec cinq messages distincts, `'s'`, `'p'`, `'i'`, `'k'`, `'e'`. Le contrat violé ne plante pas, il fabrique du faux en silence. C'est exactement le genre de défaillance que le projet cherche à rendre impossible.
+
+### Le point le plus subtil : deux sens de « pareil »
+
+Voici le cœur intellectuel de ces semaines. On pourrait croire que deux écritures équivalentes du même processus doivent produire **exactement la même suite d'événements**. C'est faux, et c'est le piège central.
+
+La raison est plus fine que « les deux versions tirent dans un ordre différent », et il faut être précis ici, parce que l'imprécision contredirait l'argument central de `rng.py`. La dérivation des flux se fait **par étiquette**, jamais par compteur : elle est donc *order-independent* par construction, et l'ordre d'instanciation ne peut pas être la cause. Ce qui diffère est le **chemin d'étiquettes** menant à chaque générateur :
+
+- monolithe : racine, puis `"neuron"`, puis `"spikes"` et `"transitions"` ;
+- décomposé : racine, puis `"markov"` menant à `"transitions"`, et `"poisson"` menant à `"spikes"`.
+
+Les rôles se correspondent un pour un, mais les clés de dérivation ne sont pas les mêmes, donc les générateurs sont amorcés différemment et ne produisent pas les mêmes nombres. S'y ajoute une seconde source de divergence, interne cette fois : la `MarkovChain` pré-tire son état de destination dès la construction, alors que le monolithe le tire au moment du saut, donc la séquence de tirages à l'intérieur d'un même générateur diffère aussi.
+
+Leurs suites de spikes **diffèrent donc nécessairement**, même à graine égale. Exiger qu'elles soient identiques déclarerait fausse **toute** décomposition, y compris les correctes.
+
+Le bon critère n'est donc pas « même suite » mais « même loi de probabilité ». Deux dés honnêtes ne donnent pas la même suite de résultats ; ce sont pourtant le même dé. C'est cette égalité en loi qu'il faut tester.
+
+### Le test de Kolmogorov-Smirnov et son interprétation
+
+Le KS à deux échantillons répond à une question précise : deux échantillons proviennent-ils de la même distribution ? Il ne compare pas des moyennes isolément, mais la forme entière de la loi, via la statistique
+
+$$
+D = \sup_x |F_1(x) - F_2(x)|,
+$$
+
+le plus grand écart vertical entre les deux fonctions de répartition empiriques. Sous l'hypothèse nulle (même loi), $D$ suit une distribution connue, ce qui donne une p-value.
+
+Le point de rigueur que je veux retenir pour la présentation : **un KS non significatif ne prouve pas l'hypothèse nulle**. Il échoue à la rejeter. C'est de la *non-réfutation*, pas une confirmation. On ne conclut jamais « les deux modèles sont identiques », mais « aucun test statistique n'est parvenu à les distinguer, à ce pouvoir statistique et sur ces graines ».
+
+Cette réserve est d'autant plus nécessaire que le pouvoir du test est ici faible : deux échantillons de dix valeurs ne détectent qu'un écart distributionnel important. Le dire renforce la conclusion plutôt que de l'affaiblir, puisque c'est précisément ce qui interdit de lire une non-réfutation comme une preuve. Paramétrer sur dix graines reste un gain réel par rapport à une graine unique, qui pourrait passer par chance sans qu'on puisse le voir.
+
+### Le piège de l'autocorrélation, et pourquoi on n'ajuste jamais le seuil
+
+Le KS sur les ISI bruts d'un même run échouait sur certaines graines, avec des p-values de l'ordre de $10^{-3}$ alors que l'écart maximal entre les courbes était inférieur à 7 % ($D$ sous 0.07). Ces valeurs proviennent d'un banc de simulation jetable monté pour explorer le problème, et non de PyPDEVS : elles donnent l'ordre de grandeur du phénomène, pas une mesure de référence. Ce qui a été confirmé sous PyPDEVS 2.4.2, c'est que la version corrigée passe. J'ai d'abord cru à une vraie différence entre les modèles. C'en était une fausse.
+
+La cause est une **hypothèse brisée**, pas une découverte. Le KS suppose des échantillons i.i.d. Or les ISI d'un même run sont **autocorrélés** : les longs intervalles se groupent dans l'état lent de la CTMC, les courts dans l'état rapide. Avec environ 1400 ISI corrélés par run, la fonction de répartition empirique sous-estime sa propre variance, le test croit disposer de bien plus d'information indépendante qu'il n'en a réellement, et il rejette sur des écarts triviaux.
+
+Deux issues se présentaient. La mauvaise : baisser le seuil $\alpha$ jusqu'à ce que le test passe, ce qui est du *p-hacking* et n'a aucune place dans du code de dépôt. La bonne : corriger l'**entrée** du test, pas son seuil. La séquence intra-run viole l'hypothèse i.i.d., donc on ne la donne pas au KS. On agrège plutôt **une observation par run indépendant** : le compte de spikes par graine (qui teste l'échelle et la sur-dispersion) et l'ISI moyen par graine (un résumé scalaire de la position de la loi). Chaque entrée du KS devient alors i.i.d. entre graines. Le coût est explicite et assumé : on perd de la résolution sur la forme fine de la loi des ISI, résolution qu'on laisse aux figures de comptage cumulé.
+
+### La sur-dispersion, signature du MMPP et non défaut
+
+La première exécution du décomposé, à graine 42 sur 60 secondes, a donné 666 spikes pour une attente de 720, soit un cheveu sous la borne basse de l'intervalle de confiance de Poisson [667, 773]. Une valeur hors intervalle n'a rien d'alarmant en soi, puisque cela arrive 5 % du temps par construction, mais tomber exactement à la frontière méritait un diagnostic plutôt qu'un haussement d'épaules. Deux hypothèses, et elles ne sont pas équivalentes : soit c'est le hasard de cette graine, soit la décomposition perd des spikes de façon systématique, le suspect naturel étant le re-tirage de l'intervalle à chaque changement de taux.
+
+Le test discriminant est simple : relancer sur d'autres graines. Si les comptes se répartissent des deux côtés de 720, c'est le hasard ; s'ils sont tous serrés en dessous, c'est un biais. Les graines 1, 7 et 100 ont donné 824, 623 et 821. Les quatre comptes tombent hors de l'intervalle, mais **des deux côtés** de la valeur attendue, deux en dessous et deux au-dessus. Pas de biais, donc, et rien à corriger.
+
+Ce qui est instructif est **l'amplitude** de la dispersion, bien plus large que ce qu'un Poisson pur prédirait. C'est exactement la **sur-dispersion**, la signature du MMPP. L'intervalle de confiance de Poisson suppose variance égale à la moyenne ; un processus modulé ajoute de la variance au-delà, parce que sur un horizon court la CTMC ne fait que quelques transitions et chaque run attrape une fraction différente de temps passé dans chaque régime. Voir les comptes s'étaler sur $\pm 100$ là où un Poisson resterait à $\pm 50$ n'est pas un bug : c'est la démonstration empirique que la modulation fait quelque chose. Que les quatre graines sortent de l'intervalle, et non une sur vingt, est la mesure directe du fait que le gabarit ne convient pas.
+
+Conséquence pratique : le CI de Poisson est le mauvais gabarit pour valider le compte d'un MMPP sur horizon court, et le bon critère reste la convergence du taux $N(t)/t \to \bar\lambda$ sur horizon long. C'est pourquoi le test d'intégration du décomposé mesure sur 400 secondes et non sur 60 : la demi-largeur relative de l'intervalle décroît en $1/\sqrt{\bar\lambda T}$, donc l'horizon long resserre la mesure autour de $\bar\lambda$ sans qu'on ait à toucher au seuil.
+
+### Passer à un autre ordre : les files de Gelenbe
+
+Les G-networks ne sont pas un neurone de plus mais un modèle de **réseau**. Une file de Gelenbe reçoit deux types d'arrivées de Poisson : des clients **positifs** qui rejoignent la file et sont servis, et des signaux **négatifs** qui détruisent un client en attente, ou s'évanouissent sans effet si la file est vide. Le client négatif ne porte aucun travail : c'est un pur signal d'annihilation, la métaphore de l'inhibition neuronale.
+
+Le point mathématique central est la place de $\lambda^-$ dans la charge stationnaire :
+
+$$
+\rho = \frac{\lambda^+}{\mu + \lambda^-}.
+$$
+
+L'intuition qui rend la formule évidente : un client quitte la file de **deux** façons, soit servi (taux $\mu$), soit détruit (taux $\lambda^-$). Du point de vue de la longueur de file, peu importe pourquoi il part. La destruction est donc un **second canal de sortie**, ce qui l'inscrit au dénominateur, avec le service, jamais au numérateur. L'erreur naturelle serait d'écrire $(\lambda^+ - \lambda^-)/\mu$, comme si les négatifs annulaient les positifs à l'entrée ; c'est faux, puisqu'un négatif sur file vide se perd sans rien détruire. Une fois $\rho$ défini ainsi, la forme product-form survit : $E[N] = \rho/(1-\rho)$.
+
+### Deux obstacles d'implémentation propres à la file
+
+**Publier depuis une transition externe.** Un modèle DEVS atomique ne peut émettre de sortie que via `outputFnc`, laquelle n'est appelée qu'avant une transition **interne**. Or une arrivée est une transition externe. La file n'aurait donc publié sa longueur qu'aux départs, ratant toutes les montées de $n$. La solution est le patron DEVS standard de l'**état transitoire** : sur une arrivée, la file lève un drapeau, se réveille elle-même avec un `timeAdvance` nul, publie la nouvelle longueur pendant ce pas instantané, puis baisse le drapeau et reprend son service intact. L'alternative (reconstruire $N(t)$ dans le runner à partir des arrivées et des départs) aurait fait fuir la sémantique file dans la couche de vérification, ce que l'architecture interdit.
+
+**Le signe porté par le port, pas par le message.** Un client positif et un signal négatif arrivent avec exactement le même payload opaque. Ce qui les distingue est le **port** sur lequel le couplage se termine. Conséquence : les deux sources sont des `PoissonNeuron` ordinaires, réutilisés tels quels, qui ignorent tout des G-networks. Le routage est la responsabilité de l'assemblage, pas de la source. C'est le bénéfice concret de la décision antérieure de garder le `PoissonNeuron` comme source pure non typée, et cette réutilisation n'aurait pas été possible s'il avait été typé pour les spikes. Elle n'aurait pas été possible non plus si le tirage dans `timeAdvance` n'avait pas été corrigé d'abord.
+
+### Mesurer une charge stationnaire : intégrer un escalier
+
+La grandeur validée change de nature. Pour Poisson et MMPP, on comptait des événements. Ici $\rho$ est une charge stationnaire, donc la validation porte sur une **longueur de file moyenne dans le temps**, alors que la couche de vérification ne savait lire que des trains d'événements.
+
+Le point que j'ai dû bien saisir est que $E[N]$ est une moyenne **temporelle**, pas une moyenne d'échantillons. Rester longtemps à $n = 0$ et brièvement à $n = 3$ ne se moyenne pas comme une moyenne arithmétique des valeurs visitées. Il faut pondérer chaque valeur par le temps passé à cette valeur :
+
+$$
+E[N] \approx \frac{1}{T}\int_0^T N(t)\,dt.
+$$
+
+La couche de vérification a donc gagné une fonction `time_average` qui intègre un signal en escalier, en trois blocs : le préfixe avant le premier enregistrement, les paliers intérieurs, et le suffixe jusqu'à la fin. Cette fonction ignore totalement ce qu'est une file ; elle intègre un signal constant par morceaux, point. Son paramètre `initial_value` est **obligatoire** : la fonction refuse de deviner la valeur du signal avant le premier changement enregistré. Ce refus, qui paraît tatillon, est exactement ce qui garde l'agnosticisme de la couche. La connaissance « ma file démarre vide » reste dans le script d'expérience, qui passe explicitement 0, et ne descend jamais dans la bibliothèque d'analyse.
+
+Un détail méthodologique important est le **warm-up**. La file démarre vide, ce qui n'est pas un tirage de la loi stationnaire mais une valeur particulière qu'on a choisie. Les premières secondes sont un transitoire systématiquement biaisé vers le bas. C'est un **biais**, pas du bruit : allonger la simulation le dilue mais ne l'élimine pas, alors que le retirer explicitement le supprime.
+
+Reste à dimensionner ce qu'on jette, et cent secondes n'est pas un chiffre arbitraire. Le temps de relaxation d'une file est de l'ordre de $1/[(\mu + \lambda^-)(1-\rho)^2]$, soit environ $0.19$ s pour le cas de référence. Cent secondes représentent donc plusieurs centaines de temps de relaxation, pour un coût de 5 % de la fenêtre : généreux et bon marché. La leçon est que ce dimensionnement dépend de $\rho$ et non d'une valeur absolue ; à charge élevée, le même calcul donnerait plusieurs secondes de relaxation et cent secondes deviendrait tout juste confortable.
+
+### De la moyenne à la loi entière
+
+La moyenne $E[N]$ n'est qu'un seul nombre, le premier moment de la loi. Deux lois différentes peuvent partager la même moyenne, donc valider contre $E[N]$ seul est un critère faible. Pour une file de Gelenbe en régime stationnaire, la longueur suit une loi **géométrique** :
+
+$$
+P(N = n) = (1 - \rho)\,\rho^n,
+$$
+
+dont $E[N] = \rho/(1-\rho)$ découle par sommation. Valider contre la loi entière est strictement plus fort, exactement le même argument que celui qui justifie le KS pour l'équivalence : la moyenne des ISI ne suffisait pas là-bas, il fallait la nature de la mixture ; la moyenne de $N$ ne suffit pas ici, il faut la géométrie.
+
+Côté observation, l'estimateur est la **fraction de temps** passée à chaque longueur, pas la fraction de changements. Une longueur atteinte souvent mais quittée immédiatement pèse presque rien dans une loi stationnaire, définie précisément comme une fraction de temps. Compter les changements donnerait le même poids à un état traversé en 10 ms qu'à un état tenu dix secondes, ce qui gonflerait artificiellement la queue de distribution. La fonction `time_weighted_histogram` fait exactement le même découpage en paliers que `time_average`, mais range chaque durée dans un dictionnaire indexé par la valeur plutôt que de tout sommer dans un accumulateur. On obtient ainsi la loi empirique complète, à comparer directement à la géométrique.
+
+Une relation de cohérence relie les deux fonctions : la moyenne pondérée de l'histogramme doit égaler `time_average` à la précision flottante près, puisque les deux font le même découpage et ne diffèrent que par l'accumulateur. Ce serait un test d'invariant gratuit, qui vérifie un lien entre deux fonctions sans avoir à calculer la réponse à la main. Il n'est pas encore dans la suite : celle-ci n'assert aujourd'hui que la cohérence entre les deux formes **closes**, en vérifiant que $\sum_n n\,P(N = n)$ redonne bien $E[N]$. Le pendant empirique reste à écrire.
+
+### D'une tolérance pragmatique à un vrai critère statistique
+
+Le test d'intégration de la file comparait d'abord la longueur moyenne à $E[N]$ avec une tolérance relative de 15 % sur une graine unique. C'était une bande pragmatique, pas un test statistique, et c'était la seule dette concrètement nommée. Le problème est qu'une tolérance fixe ne distingue pas un modèle correct d'un seuil simplement généreux : elle passe ou échoue sans qu'on sache pourquoi.
+
+La version propre applique la même discipline que le test d'équivalence : **une observation par exécution indépendante**. Chaque graine produit une moyenne temporelle, ces valeurs sont i.i.d. entre graines, et on construit un intervalle de confiance de Student autour de leur moyenne,
+
+$$
+\text{IC}_{95} = \bar{\bar N} \pm t_{0.975,\,K-1}\,\frac{s}{\sqrt{K}},
+$$
+
+puis on vérifie que la forme close $\rho/(1-\rho)$ tombe dedans. Le Student plutôt que la normale parce que $K$ est petit et que l'écart-type est estimé, pas connu ; utiliser 1.96 sous-estimerait la largeur de l'intervalle. L'intérêt n'est pas d'être « plus strict » au sens naïf, mais de changer la **nature** de l'affirmation : un intervalle construit sur la dispersion observée échoue exactement quand le biais dépasse le bruit, ce qui est la question posée.
+
+Le même dispositif, avec $\lambda^- = 0$, donne le contrôle croisé **M/M/1**. La file de Gelenbe doit alors dégénérer en file classique, de charge $\rho = \lambda^+/\mu$. La valeur validée est réellement différente (0.667 contre 0.5 du cas de référence), donc les deux configurations discriminent entre les deux lectures de $\rho$ : un bug qui ignorerait le canal de destruction passerait le cas de référence et échouerait sur le cas limite. Pour permettre $\lambda^- = 0$, j'ai choisi d'**omettre entièrement** la source négative et son câblage plutôt que d'instancier une source de taux nul. Un taux de Poisson nul n'est pas un processus dégénéré, c'est l'absence de processus ; relâcher l'invariant `rate > 0` pour la commodité d'un appelant aurait affaibli un composant correct. Puisque le signe vit dans le port, « pas de canal de destruction » **est** littéralement « pas de fil vers le port négatif ». La dérivation des flux par étiquette garantit d'ailleurs qu'omettre la source négative ne déplace pas les flux positif et de service : les deux régimes restent directement comparables, ce qu'un test vérifie en comparant l'état initial de la source positive dans les deux configurations.
+
+### Un détail d'API à ne pas deviner
+
+Les noms d'attributs internes de PyPDEVS 2.4.2 ne suivent aucune convention unique, et deux essais successifs sur de mauvaises hypothèses me l'ont rappelé : le couplage entrant d'un port est `inline` en minuscules, l'ensemble des sous-modèles d'un modèle couplé est `component_set` en snake_case. Ni `inLine` ni `componentSet` n'existent. La leçon, cohérente avec la discipline du projet, est d'**inspecter par `dir()` avant d'asserter** plutôt que de deviner. La seconde leçon est plus intéressante que la première : l'assertion structurelle du cas M/M/1 avait d'abord été écrite sur `inline`, un attribut interne non documenté, ce qui couplait inutilement le test à la structure de la librairie. Elle a été remplacée par un comptage de sous-modèles via `component_set`, qui est l'API publique, et la preuve comportementale reste portée par la campagne de conformité M/M/1.
+
+**Difficultés**
+
+- Comprendre le test de Kolmogorov-Smirnov, et surtout son interprétation correcte : la non-réfutation n'est pas une confirmation, et l'échec sur les ISI intra-run était une hypothèse i.i.d. brisée par l'autocorrélation, pas une vraie différence de loi.
+- Formuler correctement pourquoi les deux écritures du MMPP divergent : ce n'est pas un ordre de consommation, mais des chemins de dérivation d'étiquettes distincts, ce qui est cohérent avec l'order-independence revendiquée par `rng.py`.
+- Distinguer, sur les comptes du MMPP décomposé, un biais systématique (à corriger) d'une sur-dispersion attendue (la signature du modèle, à mettre en valeur), et construire le test discriminant plutôt que de conclure sur une seule graine.
+- Comprendre les bases des G-networks au niveau conceptuel et mathématique : pourquoi $\lambda^-$ est au dénominateur, et pourquoi la destruction est un second canal de sortie.
+- Saisir qu'une charge stationnaire est une moyenne temporelle, pas d'échantillons, et pourquoi la loi entière est un critère strictement plus fort que la seule moyenne.
+- Le patron de l'état transitoire pour publier depuis une transition externe, contrainte propre à DEVS que rien dans les familles précédentes n'avait exigée.
