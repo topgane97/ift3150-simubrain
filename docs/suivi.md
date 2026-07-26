@@ -1,6 +1,6 @@
 # Suivi hebdomadaire
 
-Ce journal documente l'avancement du projet semaine par semaine : objectifs fixés, travail accompli, blocages, prochaines étapes.
+Ce journal documente l'avancement du projet semaine par semaine : objectifs fixés, travail accompli,  prochaines étapes.
 
 ---
 
@@ -291,3 +291,35 @@ Ce journal documente l'avancement du projet semaine par semaine : objectifs fix�
 
 - Cas limite sans signal négatif (M/M/1) comme contrôle croisé
 - Diagrammes UML et C4, synthèse de l'architecture sur les trois familles
+
+---
+## Semaine 12 (20 juillet au 24 juillet 2026): *Réalisation progressive du Projet*
+
+**Objectifs**
+
+- Trancher le cas limite M/M/1 (lambda- = 0) : test 
+- Remplacer la tolérance sur une graine unique par une campagne multi-graines avec intervalle de confiance
+- Valider la loi entière de la file (géométrique) et non seulement le premier moment
+- Documenter la décision de ne pas factoriser les frames d'expérience 
+- Git push les nouveaux ajouts
+- Mise en commun 3 avec préparation du powerpoint et de la présentation
+
+**Accompli**
+
+- [X] Rendre GQueueExperiment capable d'omettre le flux négatif (lambda- = 0) : la source négative et son câblage sont retirés entièrement plutôt qu'une source silencieuse instanciée, cohérent avec le signe porté par le port
+- [X] Remplacer la tolérance relative par une campagne de huit graines à 1500 s avec intervalle de confiance de Student, dans un fichier séparé test_gqueue_conformance.py
+- [X] Ajouter le cas limite M/M/1 comme contrôle croisé sur le même dispositif (E[N] = 0.6667 contre 0.5000 du cas de référence, ce qui discrimine la place de lambda- dans rho)
+- [X] Implémenter time_weighted_histogram dans analysis.py (occupation temporelle d'un signal en escalier, agnostique au domaine)
+- [X] Implémenter gqueue_length_distribution (loi géométrique (1-rho) rho^n, tronquée et non normalisée de façon explicite)
+- [X] Valider la file contre sa loi stationnaire entière et non seulement contre E[N]
+- [X] Documenter dans le docstring de MMPPExperiment la décision de ne pas factoriser les quatre frames, avec la condition de révision
+- [X] Vérifier le code : ruff check, ruff format, pytest (142 tests verts)
+- [X] Mettre à jour le README (roadmap, tableau de résultats, portée)
+- [X] Git push les nouveaux ajouts
+- [X] Rencontre avec Abdelhamid le 23 juillet pour lui montrer l'avancement de mon projet et organiser une rencontre avec M.Syriani pour lundi 27 juillet
+- [X] Dernière présentation de l'avancement du projet pour la Mise en commun 3 avec les autres étudiants pour IFT 3150
+
+**Prochaines étapes**
+
+- Diagrammes UML (classes en couches) et C4
+- Foire : kiosque de démonstration le 30 juillet de 15h00-17h30 à l'Agora du Pavillon Jean-Coutu
