@@ -595,6 +595,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#semaine-12-20-juillet-au-24-juillet-2026-realisation-progressive-du-projet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semaine 12 (20 juillet au 24 juillet 2026): Réalisation progressive du Projet
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -842,6 +853,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#semaine-12-20-juillet-au-24-juillet-2026-realisation-progressive-du-projet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semaine 12 (20 juillet au 24 juillet 2026): Réalisation progressive du Projet
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -863,7 +885,7 @@
 
 
 <h1 id="suivi-hebdomadaire">Suivi hebdomadaire<a class="headerlink" href="#suivi-hebdomadaire" title="Permanent link">&para;</a></h1>
-<p>Ce journal documente l'avancement du projet semaine par semaine : objectifs fixés, travail accompli, blocages, prochaines étapes.</p>
+<p>Ce journal documente l'avancement du projet semaine par semaine : objectifs fixés, travail accompli,  prochaines étapes.</p>
 <hr />
 <h2 id="semaine-01-avant-demarrage-27-avril-au-1er-mai-2026">Semaine 0.1: Avant-démarrage (27 avril au 1er mai 2026)<a class="headerlink" href="#semaine-01-avant-demarrage-27-avril-au-1er-mai-2026" title="Permanent link">&para;</a></h2>
 <p><strong>Objectifs</strong></p>
@@ -1127,6 +1149,37 @@
 <ul>
 <li>Cas limite sans signal négatif (M/M/1) comme contrôle croisé</li>
 <li>Diagrammes UML et C4, synthèse de l'architecture sur les trois familles</li>
+</ul>
+<hr />
+<h2 id="semaine-12-20-juillet-au-24-juillet-2026-realisation-progressive-du-projet">Semaine 12 (20 juillet au 24 juillet 2026): <em>Réalisation progressive du Projet</em><a class="headerlink" href="#semaine-12-20-juillet-au-24-juillet-2026-realisation-progressive-du-projet" title="Permanent link">&para;</a></h2>
+<p><strong>Objectifs</strong></p>
+<ul>
+<li>Trancher le cas limite M/M/1 (lambda- = 0) : test </li>
+<li>Remplacer la tolérance sur une graine unique par une campagne multi-graines avec intervalle de confiance</li>
+<li>Valider la loi entière de la file (géométrique) et non seulement le premier moment</li>
+<li>Documenter la décision de ne pas factoriser les frames d'expérience </li>
+<li>Git push les nouveaux ajouts</li>
+<li>Mise en commun 3 avec préparation du powerpoint et de la présentation</li>
+</ul>
+<p><strong>Accompli</strong></p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Rendre GQueueExperiment capable d'omettre le flux négatif (lambda- = 0) : la source négative et son câblage sont retirés entièrement plutôt qu'une source silencieuse instanciée, cohérent avec le signe porté par le port</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Remplacer la tolérance relative par une campagne de huit graines à 1500 s avec intervalle de confiance de Student, dans un fichier séparé test_gqueue_conformance.py</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Ajouter le cas limite M/M/1 comme contrôle croisé sur le même dispositif (E[N] = 0.6667 contre 0.5000 du cas de référence, ce qui discrimine la place de lambda- dans rho)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Implémenter time_weighted_histogram dans analysis.py (occupation temporelle d'un signal en escalier, agnostique au domaine)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Implémenter gqueue_length_distribution (loi géométrique (1-rho) rho^n, tronquée et non normalisée de façon explicite)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Valider la file contre sa loi stationnaire entière et non seulement contre E[N]</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Documenter dans le docstring de MMPPExperiment la décision de ne pas factoriser les quatre frames, avec la condition de révision</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Vérifier le code : ruff check, ruff format, pytest (142 tests verts)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Mettre à jour le README (roadmap, tableau de résultats, portée)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Git push les nouveaux ajouts</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Rencontre avec Abdelhamid le 23 juillet pour lui montrer l'avancement de mon projet et organiser une rencontre avec M.Syriani pour lundi 27 juillet</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Dernière présentation de l'avancement du projet pour la Mise en commun 3 avec les autres étudiants pour IFT 3150</li>
+</ul>
+<p><strong>Prochaines étapes</strong></p>
+<ul>
+<li>Diagrammes UML (classes en couches) et C4</li>
+<li>Foire : kiosque de démonstration le 30 juillet de 15h00-17h30 à l'Agora du Pavillon Jean-Coutu</li>
 </ul>
 
 
