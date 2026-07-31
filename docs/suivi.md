@@ -323,3 +323,32 @@ Ce journal documente l'avancement du projet semaine par semaine : objectifs fix�
 
 - Diagrammes UML (classes en couches) et C4
 - Foire : kiosque de démonstration le 30 juillet de 15h00-17h30 à l'Agora du Pavillon Jean-Coutu
+
+---
+## Semaine 13 (27 juillet au 31 juillet 2026): *Synthèse architecturale*
+
+**Objectifs**
+
+- Rencontre avec M. Syriani le lundi 27 juillet 2026 
+- Produire les diagrammes UML et C4 de l'architecture (classes en couches, contexte, conteneurs, composants, séquence)
+- Rédiger la page d'architecture et la committer dans le dépôt de code
+- Fournir les diagrammes dans un format éditable pour les visiteurs du dépôt
+- Foire : kiosque de démonstration le 30 juillet de 15h00 à 17h30 à l'Agora du Pavillon Jean-Coutu
+- Git push les nouveaux ajouts
+
+**Accompli**
+
+- [X] Rencontre avec M. Syriani le 27 juillet : recommandation d'ajouter le test de Cramér-von Mises en complément du KS pour l'équivalence MMPP
+- [X] Rédiger docs/architecture.md : quatre vues C4 (contexte, conteneurs, composants, code) et un diagramme de séquence d'un pas de simulation, selon les conventions IFT 2255
+- [X] Produire le diagramme de classes complet (22 classes, couches en espaces de noms) et une variante réduite pour la projection
+- [X] Vérifier chaque diagramme contre le code : signatures, ports, multiplicités (dont le 0..1 de la source négative), sens de toutes les dépendances
+- [X] Fournir les six diagrammes en fichiers draw.io éditables dans docs/diagrams/, un par vue
+- [X] Tenir le kiosque de démonstration à la Foire le 30 juillet 2026 de 15h00-17h30
+- [X] Git push les nouveaux ajouts
+
+
+**Prochaines étapes**
+
+- Ajouter le test de Cramér-von Mises en complément du KS dans test_mmpp_equivalence.py et relancer la campagne à dix graines pour publier les valeurs réelles
+- Rédiger le rapport final 
+- Commencer à préparer la présentation finale de 25 minutes

@@ -588,3 +588,173 @@ Les noms d'attributs internes de PyPDEVS 2.4.2 ne suivent aucune convention uniq
 - Comprendre les bases des G-networks au niveau conceptuel et mathématique : pourquoi $\lambda^-$ est au dénominateur, et pourquoi la destruction est un second canal de sortie.
 - Saisir qu'une charge stationnaire est une moyenne temporelle, pas d'échantillons, et pourquoi la loi entière est un critère strictement plus fort que la seule moyenne.
 - Le patron de l'état transitoire pour publier depuis une transition externe, contrainte propre à DEVS que rien dans les familles précédentes n'avait exigée.
+
+## Semaine 13 (du 27 au 31 juillet 2026) : synthèse architecturale, C4 et UML selon IFT 2255
+
+Objectif d'exploration : traduire l'architecture du projet en diagrammes qui la
+prouvent plutôt qu'ils ne l'illustrent. Cela a demandé de réviser une bonne partie
+des notions de génie logiciel d'IFT 2255 : le modèle C4 et ses quatre niveaux, la
+notation des diagrammes de classes et de séquence, les critères de bonne
+conception (cohésion, couplage), les styles architecturaux, et les quatre patrons
+de conception du cours. La surprise de la semaine est que dessiner n'est pas
+neutre : deux défauts réels du dépôt sont sortis de l'exercice.
+
+### Le modèle C4 : quatre niveaux, et le quatrième est déjà connu
+
+Le modèle C4 décrit un système par quatre vues d'abstraction décroissante : le
+**système** dans son contexte (qui l'utilise, de quoi il dépend), les
+**conteneurs** (les unités logiques indépendantes, ce qui peut s'exécuter
+séparément), les **composants** (les modules à l'intérieur d'un conteneur), et le
+**code**. Le point que je n'avais pas intégré avant de réviser : le niveau 4 n'est
+pas une notation nouvelle, c'est **le diagramme de classes** de la conception
+orientée objet. IFT 2255 établit cette correspondance explicitement, et demande de
+savoir passer d'une vue C4 au diagramme de classes et inversement. La notation C4
+est volontairement plus simple et **informelle** que UML : elle peut varier d'une
+équipe à l'autre, ce qui autorise mes boîtes à porter des couleurs par type
+d'élément (personne, système, conteneur, composant, externe) du moment que la
+légende est là.
+
+Pour mon projet, chaque niveau répond à une question distincte. Le niveau 1 trace
+la **frontière de périmètre** : le méta-formalisme d'Abdelhamid est hors de la
+boîte, mon infrastructure est dedans, et c'est précisément ce que ce niveau sert à
+dire. Le niveau 2 sépare ce qui s'exécute : le paquet, la suite pytest, le dossier
+de figures. Le niveau 3 montre les quatre couches et le sens de chaque flèche. Le
+niveau 4 est le diagramme de classes complet.
+
+### Librairie contre cadriciel : l'inversion de contrôle
+
+IFT 2255 distingue la **librairie** (mon code appelle son code, je garde la
+logique de contrôle) du **cadriciel** (son code appelle le mien, je fournis des
+morceaux qu'il invoque). La distinction m'a paru académique jusqu'à ce que je
+doive étiqueter la flèche vers PythonPDEVS au niveau 1 : NumPy et Matplotlib sont
+des librairies, mais PyPDEVS est un cadriciel, et cette inversion de contrôle est
+exactement ce qui fait de la pureté de `timeAdvance` une contrainte dure plutôt
+qu'un choix de style. Ce n'est pas moi qui décide combien de fois cette fonction
+est appelée, c'est le simulateur. Toute la règle du pré-tirage, établie dès la
+semaine 11, découle d'un concept d'architecture que je connaissais sans l'avoir
+relié.
+
+### L'architecture en couches comme propriété négative
+
+Le style en couches organise l'application en couches ayant chacune un rôle
+spécifique, les couches supérieures appelant les inférieures pour obtenir des
+services, jamais l'inverse. Ce que la rédaction m'a fait comprendre, c'est que la
+revendication intéressante d'un diagramme de couches est **négative** : ce ne sont
+pas les flèches présentes qui portent l'argument, ce sont les flèches absentes.
+Aucune arête entre `analysis` et `models`, dans aucun sens. Aucune arête sortant
+de `rng`. Un diagramme d'architecture honnête se vérifie donc contre les imports
+réels, pas contre l'intention : j'ai contrôlé chaque affirmation d'import avant de
+la dessiner, ce qui rejoint la distinction vérification / validation (est-ce que
+le produit est bien construit ; ici, est-ce que le diagramme dit vrai).
+
+Les critères de bonne conception (forte cohésion, faible couplage, abstraction,
+encapsulation) donnent le vocabulaire pour nommer ce que l'architecture fait
+déjà : la dérivation par étiquette de `rng.py` est de l'encapsulation (le détail
+de dérivation est caché derrière une interface stable), et le fait que
+`analysis.py` consomme des listes plates est du couplage minimal. Mais le même
+vocabulaire oblige à nommer les défauts : `analysis.py` porte trois
+responsabilités (formes closes, estimateurs, figures), donc sa cohésion n'est pas
+parfaite. Plutôt que de le cacher, le document d'architecture le déclare comme
+dette acceptée avec sa condition de réexamen, ce qui est plus honnête qu'un
+découpage cosmétique sur une base gelée.
+
+### Diagramme de classes : les relations portent le sens
+
+La notation UML fixe les visibilités (`+` public, `-` privé), la portée statique
+(`{static}` ou soulignement), les classes abstraites (`{abstract}` ou italique),
+et les membres écrits `nom : type`. Mais l'essentiel de la révision a porté sur
+les **trois relations d'appartenance**, que je confondais partiellement :
+
+- **Composition** (losange plein) : le composant fait partie du composite ; si le
+  composite est détruit, ses composants le sont aussi. C'est exactement le lien
+  entre un modèle couplé et ses sous-modèles, construits dans son constructeur et
+  sans existence en dehors. La multiplicité `0..1` sur la source négative de
+  `GQueueExperiment` encode le cas M/M/1 directement dans le diagramme.
+- **Agrégation** (losange creux) : appartenance plus faible. Aucun cas dans mon
+  code, et le noter est déjà une information.
+- **Dépendance** (flèche pointillée) contre **association** (trait plein) : la
+  distinction la plus utile de la semaine. Un modèle *dépend* de `RandomStream`
+  (il apparaît dans la signature du constructeur et n'est pas retenu) mais est
+  *associé* au `Generator` qu'il en dérive (conservé en attribut). Les deux types
+  de flèches racontent l'injection de dépendances sans un mot de prose : on
+  utilise le flux une fois, on garde le générateur. `MMPPNeuron` en garde deux,
+  un par rôle sémantique.
+
+La conception orientée objet ajoute une règle de sélection que j'ignorais : sur un
+diagramme de classes participantes, les constructeurs, getters et setters sont
+**facultatifs**. Je garde pourtant les constructeurs, et la raison mérite d'être
+explicite : `rng: RandomStream` dans une signature est l'endroit exact où
+l'injection se produit, et un diagramme qui le masquerait masquerait
+l'architecture qu'il documente. L'élision est un choix, pas un oubli, et le
+document la déclare.
+
+### Diagramme de séquence : la traçabilité comme contrainte
+
+Les conventions du diagramme de séquence : lignes de vie écrites `objet : Classe`,
+messages synchrones en flèche pleine, retours en pointillé, messages numérotés
+pour suivre le scénario. Mais la contrainte la plus structurante vient de la
+méthode de réalisation des cas d'utilisation : les méthodes qui apparaissent dans
+le diagramme de séquence **doivent aussi apparaître dans le diagramme de
+classes**. Cette exigence de traçabilité m'a fait découvrir un trou dans mon
+propre diagramme : la séquence appelait `exponential(scale)` sur une ligne de vie
+`gen`, et la classe `Generator` de NumPy n'existait nulle part dans le diagramme
+de classes. Elle y est maintenant, réduite aux deux seules opérations que mon code
+appelle. La cohérence entre l'architecture, la conception orientée objet et
+l'implémentation n'est pas un slogan : c'est un contrôle mécanique qui trouve des
+trous.
+
+Une nuance propre à mon cas : le diagramme de séquence dessine un ordre entre la
+transition externe du transducteur et la transition interne du neurone que PDEVS
+ne garantit pas (les sorties sont collectées d'abord, puis toutes les transitions
+sont déclenchées au même instant). Le diagramme le déclare en note plutôt que de
+laisser croire à une garantie. Un diagramme qui affirme plus que ce que le système
+promet est un diagramme faux.
+
+### Les patrons de conception : présents, rejetés, non introduits
+
+IFT 2255 couvre quatre patrons : Singleton, Template Method, Stratégie,
+Adaptateur. L'exercice type demande de choisir un patron **et de justifier**. La
+révision m'a fait comprendre que la justification peut aussi être un rejet, et que
+c'est même mon meilleur argument de conception :
+
+- **Template Method** est présent, mais pas écrit par moi : `AtomicDEVS` fixe
+  quelles opérations existent, chaque modèle concret fournit les corps, et la
+  partie invariante de l'algorithme (l'ordre des appels) vit dans le simulateur.
+  C'est le patron distribué de part et d'autre de la frontière du cadriciel.
+- **Singleton, rejeté délibérément.** L'implémentation évidente d'une source
+  d'aléa est un générateur global au niveau module. C'est un Singleton, et il
+  détruit la propriété que le dépôt existe à fournir : l'ordre de construction
+  déciderait des tirages, ajouter un modèle perturberait les autres. `RandomStream`
+  est la conception inverse. L'absence du patron est la décision d'architecture.
+- **Stratégie, non introduite.** Deux tests statistiques dans le même rôle (KS,
+  bientôt CvM) seraient le déclencheur naturel. Mais ce qui varie, ce sont deux
+  appels à SciPy dans un module de test, pas deux composants : la règle de trois
+  n'est pas atteinte, et une Stratégie serait de l'échafaudage autour de six
+  lignes.
+- **Adaptateur** : absent, rien ne l'appelle.
+
+### Ce que dessiner a trouvé
+
+Le résultat le plus concret de la semaine n'est pas les diagrammes, mais ce que
+leur construction a fait remonter. Une **fuite de couche** : `discard_warmup`,
+fonction pure sur des enregistrements `(t, valeur)`, vit dans le runner de la
+file et est réécrite deux fois dans les tests de conformité ; trois copies de six
+lignes dans deux couches qui ne devraient pas les porter. Une **incohérence de
+dépendances** : `pyproject.toml` déclare `scipy` parmi les dépendances du paquet
+alors qu'aucun module sous `src/` ne l'importe ; sa place est dans l'extra `dev`.
+Les deux sont documentées comme dettes avec leur correctif, à appliquer après le
+gel. C'est la meilleure défense de l'exercice : un diagramme qui ne serait qu'une
+illustration n'aurait rien trouvé.
+
+**Difficultés**
+
+- Relier des notions connues isolément (inversion de contrôle, pureté des
+  fonctions DEVS) en un seul argument : le pré-tirage découle du fait que PyPDEVS
+  est un cadriciel et non une librairie.
+- La distinction dépendance contre association, et son application à l'injection :
+  quel objet est utilisé puis relâché, quel objet est conservé.
+- Accepter qu'un diagramme omette, et apprendre à déclarer l'omission plutôt 
+  qu'à la subir : constructeurs gardés pour montrer l'injection, accesseurs omis,
+  auxiliaires de tracé repliés derrière les fonctions qui les composent.
+- Formuler un rejet de patron comme une décision de conception à part entière,
+  avec le même sérieux qu'une adoption.
