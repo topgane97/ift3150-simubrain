@@ -104,6 +104,10 @@ Piège retenu : `scale = 1/rate`, et non `rate`. Et c'est la **vue inter-arrivé
 qui est naturelle pour DEVS, puisque `timeAdvance` correspond au prochain intervalle
 $T_i$.
 
+> Note rétrospective : ce `timeAdvance` qui tire est exactement la dette technique
+> résorbée en semaine 11. Le tirage doit vivre dans la transition, pas dans la
+> lecture. Voir la section sur le pré-tirage plus bas.
+
 ### Graine, PRNG et reproductibilité
 
 Une **graine** (*seed*) est le point de départ déterministe d'un générateur
@@ -112,19 +116,20 @@ résultats reproductibles par d'autres chercheurs (c'est un concept qu'Abdelhami
 souligné pour la reproduction d'expériences). Intuition via un LCG jouet
 $x_{n+1} = (5x_n + 3) \bmod 16$, en partant de $7$ : $6, 1, 8, 11, 10, \dots$
 
-Le travail sur **MRG32k3a** (L'Écuyer) généralise cette idée : période très longue et
-**sous-flux** (*substreams*) indépendants, ce qui donne à la fois le parallélisme et
-la reproductibilité, avec un sous-flux par neurone. Trajectoire d'implémentation
-envisagée, où la couche RNG reste échangeable en un seul endroit :
+L'idée qui généralise ce LCG jouet est celle de **sous-flux** (*substreams*)
+indépendants : une même graine racine, mais des sous-séquences garanties disjointes,
+une par composant. C'est ce qui donne à la fois le parallélisme et la
+reproductibilité. Trajectoire d'implémentation envisagée, où la couche RNG reste
+échangeable en un seul endroit :
 
 ```python
 self.rng = np.random.default_rng(seed)        # aujourd'hui (NumPy)
-self.rng = LEcuyerRNG.substream(neuron_id)    # plus tard (backend MRG32k3a)
+self.rng = AutreBackend.substream(neuron_id)  # plus tard, si nécessaire
 ```
 
 **Difficultés**
 
-- Le concept de graine et de PRNG est revenu à plusieurs sessions : clarifié par le LCG jouet, mais encore à consolider du côté MRG32k3a et des sous-flux.
+- Le concept de graine et de PRNG est revenu à plusieurs sessions : clarifié par le LCG jouet, mais encore à consolider du côté des sous-flux.
 - La syntaxe d'héritage en Python (réflexe `extends` de Java).
 - Faire le pont entre le neurone de Poisson *mathématique* (les $T_i$) et son *implémentation*, en passant d'une vue comptage à une vue inter-arrivées.
 
@@ -148,6 +153,12 @@ projet :
 - La **validation statistique** (empirique vs théorique) est d'une autre nature et vit
   **dans l'expérience**, pas dans les tests unitaires : on ne teste pas qu'un tirage
   aléatoire vaut une valeur précise, on vérifie qu'une distribution est la bonne.
+
+> Note rétrospective : cette seconde moitié a évolué. La validation statistique est
+> revenue dans pytest à partir de la semaine 12, mais **dans des modules séparés** et
+> sous une forme qui n'assert jamais sur un tirage isolé : une campagne de graines et
+> un intervalle de confiance. La distinction de fond tient, c'est son emplacement qui
+> a changé.
 
 Workflow avant chaque commit : `ruff check .` (et `ruff check . --fix`), `ruff format`,
 puis `pytest -v`. La suite démarre avec le neurone (`test_instantiation_default`,
@@ -241,6 +252,11 @@ seule, car elle peut dévier visiblement de la théorie sans qu'il y ait de bug.
 validation rigoureuse passe par une fenêtre longue (qui réduit la variance) ou par
 plusieurs réalisations dont on vérifie que la moyenne des comptages tombe dans le
 CI95 % et que la distribution des ISI agrégés colle.
+
+> Cette dernière phrase est, avec le recul, le programme des semaines 12 et 14. C'est
+> exactement ce que sont devenues les campagnes multi-graines, et c'est la seule
+> conclusion de cette semaine qui a directement dicté une décision d'architecture
+> deux mois plus tard.
 
 **Difficultés**
 
@@ -419,12 +435,21 @@ Le point que je voulais vraiment comprendre est *pourquoi on peut décrémenter
 l'horloge perdante au lieu de la re-tirer*. Quand le spike gagne, on émet le spike,
 on re-tire seulement l'horloge de spike, et on **décrémente** l'horloge de
 transition du temps écoulé plutôt que de la re-tirer à neuf. La justification est
-exactement l'absence de mémoire : le temps résiduel d'une exponentielle après avoir
-attendu `elapsed` suit la même loi qu'un tirage frais. Décrémenter ou re-tirer
-donnent donc mathématiquement la même distribution, mais décrémenter évite de
-retarder artificiellement un saut déjà en attente. Les deux horloges ne sont
-re-tirées ensemble que lors d'un vrai saut d'état (quand l'horloge de transition
-gagne).
+l'absence de mémoire : le taux de sortie de l'état courant n'a pas changé, donc le
+temps résiduel après avoir attendu `elapsed` suit exactement la même loi qu'un
+tirage frais. Décrémenter ou re-tirer donnent donc la même distribution, mais
+décrémenter évite de retarder artificiellement un saut déjà en attente.
+
+**Le cas du saut d'état est différent, et je l'ai d'abord mal formulé.** Quand
+l'horloge de transition gagne, le régime change, donc le taux de décharge change
+aussi. Le délai de spike en attente est jeté et un délai frais est tiré sous le
+nouveau taux. Dire que « les deux suivent la même loi » serait ici **faux** :
+$\text{Exp}(5)$ et $\text{Exp}(40)$ sont deux lois distinctes. Ce que l'absence de
+mémoire donne réellement, c'est que le résiduel **ne porte aucune information** :
+le temps déjà attendu ne dit rien sur le temps restant. Le jeter ne perd donc
+rien, et le bon délai suivant est un tirage frais sous le nouveau taux. La nuance
+est mince mais elle change l'argument, et j'ai dû corriger les docstrings
+concernés en semaine 14.
 
 Piège d'implémentation confirmé au passage : `numpy.random.exponential` prend
 `scale = 1/`$\lambda$ (la moyenne), pas $\lambda$. Un neurone à 40 Hz s'écrit
@@ -442,6 +467,8 @@ Piège d'implémentation confirmé au passage : `numpy.random.exponential` prend
   $\bar\lambda$) que sur le plan de l'implémentation matricielle.
 - Cerner comment analyser correctement les données du MMPP après l'expérience, en
   particulier pourquoi l'ISI ne se compare pas à une exponentielle.
+- Formuler correctement l'argument d'absence de mémoire selon que le taux change ou
+  non : deux situations qui se ressemblent et ne se justifient pas pareil.
 
 ## Semaine 9 à 12 (du 29 juin au 24 juillet 2026) : décomposition du MMPP, équivalence statistique et famille G-networks
 
@@ -496,6 +523,10 @@ Le point de rigueur que je veux retenir pour la présentation : **un KS non sign
 
 Cette réserve est d'autant plus nécessaire que le pouvoir du test est ici faible : deux échantillons de dix valeurs ne détectent qu'un écart distributionnel important. Le dire renforce la conclusion plutôt que de l'affaiblir, puisque c'est précisément ce qui interdit de lire une non-réfutation comme une preuve. Paramétrer sur dix graines reste un gain réel par rapport à une graine unique, qui pourrait passer par chance sans qu'on puisse le voir.
 
+> Le nombre de graines est passé à trente en semaine 14, et le raisonnement qui a
+> présidé à ce choix est développé dans la section correspondante. La réserve
+> ci-dessus, elle, ne change pas de nature : elle s'assouplit sans disparaître.
+
 ### Le piège de l'autocorrélation, et pourquoi on n'ajuste jamais le seuil
 
 Le KS sur les ISI bruts d'un même run échouait sur certaines graines, avec des p-values de l'ordre de $10^{-3}$ alors que l'écart maximal entre les courbes était inférieur à 7 % ($D$ sous 0.07). Ces valeurs proviennent d'un banc de simulation jetable monté pour explorer le problème, et non de PyPDEVS : elles donnent l'ordre de grandeur du phénomène, pas une mesure de référence. Ce qui a été confirmé sous PyPDEVS 2.4.2, c'est que la version corrigée passe. J'ai d'abord cru à une vraie différence entre les modèles. C'en était une fausse.
@@ -506,13 +537,16 @@ Deux issues se présentaient. La mauvaise : baisser le seuil $\alpha$ jusqu'à c
 
 ### La sur-dispersion, signature du MMPP et non défaut
 
-La première exécution du décomposé, à graine 42 sur 60 secondes, a donné 666 spikes pour une attente de 720, soit un cheveu sous la borne basse de l'intervalle de confiance de Poisson [667, 773]. Une valeur hors intervalle n'a rien d'alarmant en soi, puisque cela arrive 5 % du temps par construction, mais tomber exactement à la frontière méritait un diagnostic plutôt qu'un haussement d'épaules. Deux hypothèses, et elles ne sont pas équivalentes : soit c'est le hasard de cette graine, soit la décomposition perd des spikes de façon systématique, le suspect naturel étant le re-tirage de l'intervalle à chaque changement de taux.
+La première exécution du décomposé, à graine 42 sur 60 secondes, a donné 666 spikes pour une attente de 720, soit un cheveu sous la borne basse de l'intervalle de confiance de Poisson [667, 773]. Une valeur hors intervalle n'a rien d'alarmant en soi, puisque cela arrive 5 % du temps par construction, mais tomber exactement à la frontière méritait un diagnostic plutôt qu'un haussement d'épaules. Deux hypothèses, et elles ne sont pas équivalentes : soit c'est le hasard de cette graine, soit la décomposition perd des spikes de façon systématique, le suspect naturel étant le tirage frais de l'intervalle à chaque changement de taux.
 
 Le test discriminant est simple : relancer sur d'autres graines. Si les comptes se répartissent des deux côtés de 720, c'est le hasard ; s'ils sont tous serrés en dessous, c'est un biais. Les graines 1, 7 et 100 ont donné 824, 623 et 821. Les quatre comptes tombent hors de l'intervalle, mais **des deux côtés** de la valeur attendue, deux en dessous et deux au-dessus. Pas de biais, donc, et rien à corriger.
 
 Ce qui est instructif est **l'amplitude** de la dispersion, bien plus large que ce qu'un Poisson pur prédirait. C'est exactement la **sur-dispersion**, la signature du MMPP. L'intervalle de confiance de Poisson suppose variance égale à la moyenne ; un processus modulé ajoute de la variance au-delà, parce que sur un horizon court la CTMC ne fait que quelques transitions et chaque run attrape une fraction différente de temps passé dans chaque régime. Voir les comptes s'étaler sur $\pm 100$ là où un Poisson resterait à $\pm 50$ n'est pas un bug : c'est la démonstration empirique que la modulation fait quelque chose. Que les quatre graines sortent de l'intervalle, et non une sur vingt, est la mesure directe du fait que le gabarit ne convient pas.
 
 Conséquence pratique : le CI de Poisson est le mauvais gabarit pour valider le compte d'un MMPP sur horizon court, et le bon critère reste la convergence du taux $N(t)/t \to \bar\lambda$ sur horizon long. C'est pourquoi le test d'intégration du décomposé mesure sur 400 secondes et non sur 60 : la demi-largeur relative de l'intervalle décroît en $1/\sqrt{\bar\lambda T}$, donc l'horizon long resserre la mesure autour de $\bar\lambda$ sans qu'on ait à toucher au seuil.
+
+> Ce diagnostic est celui qui a le plus directement dicté le travail de la semaine
+> 14 : le gabarit inadapté a fini par être remplacé, pas contourné.
 
 ### Passer à un autre ordre : les files de Gelenbe
 
@@ -560,7 +594,7 @@ dont $E[N] = \rho/(1-\rho)$ découle par sommation. Valider contre la loi entiè
 
 Côté observation, l'estimateur est la **fraction de temps** passée à chaque longueur, pas la fraction de changements. Une longueur atteinte souvent mais quittée immédiatement pèse presque rien dans une loi stationnaire, définie précisément comme une fraction de temps. Compter les changements donnerait le même poids à un état traversé en 10 ms qu'à un état tenu dix secondes, ce qui gonflerait artificiellement la queue de distribution. La fonction `time_weighted_histogram` fait exactement le même découpage en paliers que `time_average`, mais range chaque durée dans un dictionnaire indexé par la valeur plutôt que de tout sommer dans un accumulateur. On obtient ainsi la loi empirique complète, à comparer directement à la géométrique.
 
-Une relation de cohérence relie les deux fonctions : la moyenne pondérée de l'histogramme doit égaler `time_average` à la précision flottante près, puisque les deux font le même découpage et ne diffèrent que par l'accumulateur. Ce serait un test d'invariant gratuit, qui vérifie un lien entre deux fonctions sans avoir à calculer la réponse à la main. Il n'est pas encore dans la suite : celle-ci n'assert aujourd'hui que la cohérence entre les deux formes **closes**, en vérifiant que $\sum_n n\,P(N = n)$ redonne bien $E[N]$. Le pendant empirique reste à écrire.
+Une relation de cohérence relie les deux fonctions : la moyenne pondérée de l'histogramme doit égaler `time_average` à la précision flottante près, puisque les deux font le même découpage et ne diffèrent que par l'accumulateur. C'est un test d'invariant gratuit, qui vérifie un lien entre deux fonctions sans avoir à calculer la réponse à la main. Il n'était pas encore dans la suite à ce stade, qui n'assertait que la cohérence entre les deux formes **closes** ($\sum_n n\,P(N = n)$ redonne bien $E[N]$). Le pendant empirique a été écrit en semaine 14, où il est asserté sur chaque exécution d'une campagne de file.
 
 ### D'une tolérance pragmatique à un vrai critère statistique
 
@@ -619,7 +653,16 @@ la **frontière de périmètre** : le méta-formalisme d'Abdelhamid est hors de 
 boîte, mon infrastructure est dedans, et c'est précisément ce que ce niveau sert à
 dire. Le niveau 2 sépare ce qui s'exécute : le paquet, la suite pytest, le dossier
 de figures. Le niveau 3 montre les quatre couches et le sens de chaque flèche. Le
-niveau 4 est le diagramme de classes complet.
+niveau 4 est le diagramme de classes.
+
+> Note rétrospective : le niveau 4 était initialement un diagramme unique de 22
+> classes. Après l'ajout du module de campagnes en semaine 14 il en comptait 26, et
+> le rendu inline sur GitHub était devenu illisible. Il a été scindé en trois vues
+> de classes participantes, chacune répondant à une question (les modèles, l'injection
+> du hasard, la vérification et l'orchestration), la vue complète restant disponible
+> en fichier éditable. Trois diagrammes qui répondent chacun à une question sont
+> d'ailleurs plus proches de ce qu'IFT 2255 appelle un diagramme de classes
+> participantes qu'un seul qui montre tout.
 
 ### Librairie contre cadriciel : l'inversion de contrôle
 
@@ -685,7 +728,7 @@ diagramme de classes participantes, les constructeurs, getters et setters sont
 **facultatifs**. Je garde pourtant les constructeurs, et la raison mérite d'être
 explicite : `rng: RandomStream` dans une signature est l'endroit exact où
 l'injection se produit, et un diagramme qui le masquerait masquerait
-l'architecture qu'il documente. L'élision est un choix, pas un oubli, et le
+l'architecture qu'il documente. L'omission est un choix, pas un oubli, et le
 document la déclare.
 
 ### Diagramme de séquence : la traçabilité comme contrainte
@@ -733,6 +776,10 @@ c'est même mon meilleur argument de conception :
   lignes.
 - **Adaptateur** : absent, rien ne l'appelle.
 
+> Le CvM est arrivé en semaine 14 et le refus a tenu tel quel, ce qui était le
+> vrai test de cette prédiction : une décision de conception qui se vérifie quand
+> le cas qu'elle anticipait se présente vaut plus qu'une décision jamais éprouvée.
+
 ### Ce que dessiner a trouvé
 
 Le résultat le plus concret de la semaine n'est pas les diagrammes, mais ce que
@@ -741,10 +788,21 @@ fonction pure sur des enregistrements `(t, valeur)`, vit dans le runner de la
 file et est réécrite deux fois dans les tests de conformité ; trois copies de six
 lignes dans deux couches qui ne devraient pas les porter. Une **incohérence de
 dépendances** : `pyproject.toml` déclare `scipy` parmi les dépendances du paquet
-alors qu'aucun module sous `src/` ne l'importe ; sa place est dans l'extra `dev`.
-Les deux sont documentées comme dettes avec leur correctif, à appliquer après le
-gel. C'est la meilleure défense de l'exercice : un diagramme qui ne serait qu'une
-illustration n'aurait rien trouvé.
+alors qu'aucun module sous `src/` ne l'importe.
+
+Les deux ont été résolues en semaine 14, mais pas comme prévu, et l'écart mérite
+d'être noté. La fuite de couche a bien été corrigée dans le sens annoncé, en
+remontant la fonction dans `analysis.py`, et le déplacement a même révélé une
+hypothèse cachée que la fonction transportait avec elle. En revanche mon
+correctif annoncé pour `scipy`, le descendre dans l'extra `dev`, est celui qui
+**n'a pas** été appliqué : l'arrivée de l'intervalle de confiance a fait entrer
+`scipy` dans le paquet pour de bon, donc la déclaration était juste et c'est mon
+diagnostic qui était prématuré. La dette s'est résolue par le haut. C'est un
+rappel utile : une dette documentée est une hypothèse sur le futur, pas une
+ordonnance.
+
+C'est tout de même la meilleure défense de l'exercice : un diagramme qui ne serait
+qu'une illustration n'aurait rien trouvé du tout.
 
 **Difficultés**
 
@@ -753,8 +811,256 @@ illustration n'aurait rien trouvé.
   est un cadriciel et non une librairie.
 - La distinction dépendance contre association, et son application à l'injection :
   quel objet est utilisé puis relâché, quel objet est conservé.
-- Accepter qu'un diagramme omette, et apprendre à déclarer l'omission plutôt 
+- Accepter qu'un diagramme omette, et apprendre à déclarer l'omission plutôt
   qu'à la subir : constructeurs gardés pour montrer l'injection, accesseurs omis,
   auxiliaires de tracé repliés derrière les fonctions qui les composent.
 - Formuler un rejet de patron comme une décision de conception à part entière,
   avec le même sérieux qu'une adoption.
+
+## Semaine 14 (du 3 au 7 août 2026) : campagnes multi-graines, budget de précision et deux tests plutôt qu'un
+
+Objectif d'exploration : donner aux trois familles le même dispositif de mesure,
+en portant à toutes la discipline multi-graines que seule la file de Gelenbe
+appliquait, et ajouter le test de Cramér-von Mises au critère d'équivalence sur
+recommandation de mon superviseur. la question qui a commandé la semaine porte sur: **qu'est ce qu'un nombre de graines permet réellement de conclure?**
+
+### Le nombre de graines : une recommandation, et ce qu'elle permet de conclure
+
+Le passage à trente graines par famille vient d'une recommandation de l'équipe,
+transmise par Abdelhamid. C'est aussi une valeur
+usuelle en analyse de sortie de simulation. J'ai voulu comprendre ce qu'elle
+apporte concrètement dans mon cas, moins pour la remettre en question que pour
+pouvoir la défendre autrement qu'en citant sa provenance.
+
+La justification qu'on associe spontanément à ce nombre est une règle de pouce
+liée au théorème central limite : au-delà d'une trentaine d'observations,
+l'approximation normale de la moyenne devient confortable. C'est exact en
+général, mais ce n'est pas ce qui opère ici, et le remarquer m'a demandé un
+détour. Mon intervalle utilise un quantile de **Student** et non de la normale,
+précisément parce que l'écart-type est estimé sur l'échantillon plutôt que connu.
+Or Student est construit pour les petits échantillons : il reste valide bien en
+dessous de trente. Le nombre est donc bon, mais pas pour la raison que la règle
+de pouce suggère.
+
+Ce qui fixe réellement un nombre de réplications est un **budget de précision**.
+La question n'est pas « combien de graines rendent le modèle valide », qui n'a
+pas de réponse, mais « quelle largeur d'intervalle m'est nécessaire, et combien
+de graines me la donnent », qui en a une et se vérifie après coup.
+
+Pour ce projet, la largeur nécessaire se dérive d'une exigence de discrimination.
+La file de Gelenbe a trois lectures concurrentes de $\rho$ : la lecture correcte
+donne $\mathbb{E}[N] = 0.5000$, la lecture fautive qui soustrairait les négatifs
+au numérateur donnerait $0.25$, et le cas limite sans destruction donne $0.6667$.
+L'intervalle doit être assez étroit pour séparer ces valeurs sans ambiguïté.
+Mesuré à trente graines, il vaut 1.28 % de la valeur prédite, donc elles sont
+séparées de plusieurs dizaines de demi-largeurs.
+
+Trente graines est donc à la fois la valeur recommandée par l'équipe et une
+valeur que je peux justifier par ce qu'elle produit. Les deux ne se remplacent
+pas : la recommandation vient d'une expérience du domaine que je n'ai pas, et la
+mesure me permet de répondre à « pourquoi ce nombre » autrement que par « parce
+qu'on me l'a dit ».
+
+### L'horizon est souvent un meilleur levier que le nombre de graines
+
+Un résultat qui m'a surpris. La demi-largeur de l'intervalle décroît en
+$1/\sqrt{K}$, donc passer de dix à trente graines la divise par 1.7. Mais sur le
+MMPP, la dispersion inter-graines est dominée par la **sur-dispersion**, qui
+décroît elle en $1/\sqrt{T}$ avec l'horizon de chaque exécution.
+
+J'ai mesuré : à 120 secondes par exécution, la demi-largeur vaut 3.86 % ; à 480
+secondes, 1.85 %. Le facteur est de 2.09, soit exactement le $\sqrt{4}$ attendu.
+Multiplier l'horizon par quatre a donc fait mieux que tripler le nombre de graines,
+pour un coût de calcul comparable.
+
+La leçon générale est qu'augmenter $K$ pour compenser un horizon trop court revient
+à traiter le symptôme. Quand la dispersion vient de ce que chaque exécution est
+elle-même une mesure bruitée, c'est l'exécution qu'il faut allonger. Quand elle
+vient d'une vraie variabilité entre réplications, c'est le nombre de réplications
+qui compte. Savoir laquelle des deux domine demande de mesurer, pas de deviner.
+
+### Le Poisson comme point de calibration
+
+Le dispositif à graine unique validait les familles Poisson et MMPP contre
+l'intervalle $\mu \pm 1.96\sqrt{\mu}$, qui suppose variance égale à la moyenne.
+Mon diagnostic de la semaine 10 avait déjà montré que ce gabarit ne convient pas
+au MMPP. En le remplaçant par un intervalle bâti sur la dispersion observée, j'ai
+compris quelque chose que je n'avais pas anticipé : **la famille Poisson devient
+le point de calibration de tout le dispositif**.
+
+Le raisonnement est le suivant. Pour un Poisson homogène, la variance vaut bien la
+moyenne, donc les deux gabarits doivent coïncider. C'est le seul endroit du projet
+où je connais la réponse d'avance. Si l'intervalle inter-graines y divergeait de
+$\sqrt{\lambda T}$, ce serait la machinerie de campagne qui serait en cause, pas le
+modèle. Ils coïncident, donc le désaccord observé sur le MMPP est une information
+sur le processus et non un artefact de mesure.
+
+Cela m'a donné deux tests que je n'aurais pas écrits sans y penser : l'écart-type
+inter-graines du Poisson doit rester proche de $\sqrt{\lambda T}$, celui du MMPP
+doit le dépasser. Le second attrape une faute qu'aucun test de conformité sur la
+moyenne ne verrait, à savoir une décomposition qui aurait perdu la modulation :
+elle retrouverait $\bar\lambda$ en moyenne tout en déchargeant comme un Poisson
+ordinaire. Seule la dispersion sépare les deux.
+
+Sur la figure de conformité, ce contraste est visible sans une phrase
+d'explication : la bande du gabarit de Poisson englobe celle de la campagne sur le
+panneau Poisson, et se réduit à un mince ruban que la moitié des points dépassent
+sur les panneaux MMPP.
+
+### Kolmogorov-Smirnov contre Cramér-von Mises : deux géométries
+
+L'ajout du CvM à côté du KS était une recommandation de mon superviseur, et j'ai
+voulu comprendre ce qu'il apporte réellement avant de l'écrire, parce que la
+formulation paresseuse (« il est plus précis ») est fausse et se ferait
+légitimement contredire.
+
+Les deux tests répondent à la même question mais ne lisent pas la même chose. Le
+KS retient l'écart vertical **maximal** entre les deux fonctions de répartition
+empiriques,
+
+$$
+D = \sup_x |F_1(x) - F_2(x)|,
+$$
+
+autrement dit un seul point du support, celui où le désaccord est le pire. Le CvM
+**intègre l'écart quadratique** sur tout le support :
+
+$$
+W^2 \propto \int (F_1(x) - F_2(x))^2 \, dF(x).
+$$
+
+La conséquence est géométrique. Deux courbes qui s'écartent beaucoup en un point
+et se recollent partout ailleurs donnent un grand $D$ et une petite aire : le KS
+voit, le CvM moins. Deux courbes qui restent légèrement décalées sur tout le
+support donnent un $D$ modeste et une aire notable : le CvM voit, le KS moins. La
+formulation correcte est donc que le CvM est **plus puissant contre certaines
+alternatives**, en particulier les différences diffuses ou situées dans les queues,
+et non « plus précis » dans l'absolu.
+
+C'est ce qui m'a fait dessiner la figure d'équivalence comme je l'ai faite : les
+deux fonctions de répartition superposées, le crochet vertical qui marque le $D$ que
+lit le KS, et l'aire hachurée entre elles qui est ce que le CvM intègre. L'argument
+devient visible au lieu d'être asserté.
+
+### Deux statistiques qui n'en font qu'une, et il faut le dire
+
+En lisant les résultats, un détail m'a fait tiquer : le KS rend exactement la même
+statistique $D = 0.1333$ sur les comptes et sur les ISI moyens. Une coïncidence
+parfaite est toujours suspecte, alors j'ai cherché pourquoi.
+
+L'explication est simple une fois vue. L'ISI moyen d'une exécution vaut
+approximativement $T / \text{compte}$, donc les deux échantillons sont presque
+déterministiquement liés et ont le même **ordonnancement** entre graines. Or le KS
+ne lit que des rangs, donc il ne peut pas les distinguer. Le CvM, qui intègre, les
+sépare légèrement (0.0381 contre 0.0372), ce qui confirme le diagnostic.
+
+Ce n'est pas un problème, mais c'est une chose à écrire dans les limites plutôt
+qu'à laisser croire : ce sont **deux angles sur une même mesure**, pas deux
+confirmations indépendantes. Présenter quatre tests comme quatre preuves séparées
+serait une exagération, exactement le genre d'affirmation qu'un examinateur a
+raison de mettre à l'épreuve.
+
+### Une p-value élevée ne mesure rien
+
+Point de rigueur que je veux garder pour la soutenance. Mes quatre p-values valent
+environ 0.96, ce qui donne envie de dire « les deux écritures sont très
+équivalentes ». C'est faux, et pour une raison précise : **sous l'hypothèse nulle,
+une p-value est distribuée uniformément sur $[0,1]$**. Obtenir 0.96 est donc un
+tirage aussi ordinaire que d'obtenir 0.30. La p-value n'est pas une mesure de
+ressemblance, c'est la probabilité d'observer un écart au moins aussi grand si
+l'hypothèse nulle est vraie.
+
+La conclusion correcte reste donc celle de la semaine 10, inchangée malgré trente
+graines au lieu de dix : aucun des deux tests n'est parvenu à distinguer les deux
+écritures, à ce pouvoir et sur ces graines. Ce n'est pas une preuve d'identité.
+
+### Distinguer un biais d'un bruit, à nouveau
+
+Les moyennes du MMPP sont sorties légèrement sous la prédiction, $-2.08$ % à 120
+secondes puis $-1.24$ % à 480. Deux valeurs du même signe, ce qui a réveillé le
+même soupçon qu'en semaine 10 : la chaîne démarre dans un état fixé plutôt que
+tiré selon sa distribution stationnaire $\pi$, et comme elle démarre au repos
+(5 Hz), chaque exécution passe ses premières secondes sous-cadencée. Un biais
+d'amorçage produirait exactement un déficit négatif décroissant avec l'horizon.
+
+Le test discriminant est le même qu'en semaine 10, mais appliqué à une autre
+variable. Si c'est un transitoire d'amorçage, le déficit **absolu** en spikes doit
+être à peu près constant quel que soit l'horizon, puisque c'est un nombre fixe de
+spikes manqués au début. Si c'est du bruit, il doit varier sans structure.
+
+Mesuré sur trois horizons : $-29.9$ spikes à 120 secondes, $-71.5$ à 480, et
+$+108.9$ à 1920. Le déficit n'est pas constant, il **change de signe**, et la
+proportion de graines sous la prédiction reste autour de la moitié aux trois
+horizons (16, 17 et 13 sur 30). C'est du bruit.
+
+Mon hypothèse était donc fausse, et comprendre pourquoi elle était plausible mais
+mal calibrée est instructif : le biais d'amorçage **existe** bel et bien, mais le
+temps de séjour moyen au repos est de 2 secondes sur des horizons de 120 secondes
+et plus, donc l'effet se compte en quelques spikes contre une dispersion
+inter-graines de plusieurs dizaines. La sur-dispersion du MMPP est un bruit
+beaucoup plus gros que ce biais. Il reste dans les limites du projet, mais formulé
+comme ce qu'il est : mesuré et indétectable à ce budget, pas absent.
+
+La même vérification a été faite sur la file : 18 moyennes sur 30 au-dessus de la
+prédiction au cas de référence et 16 sur 30 au cas limite, donc le warm-up de cent
+secondes suffit. Un warm-up trop court aurait donné une nette majorité du même
+côté.
+
+### Le coût d'une campagne, et pourquoi il n'a pas été un obstacle
+
+J'avais surestimé d'au moins deux ordres de grandeur le temps de calcul d'une
+campagne, ce qui m'aurait conduit à des compromis inutiles. Une exécution de file
+de 1500 secondes prend 0.09 seconde, et la suite complète, campagnes comprises,
+tourne en quelques secondes sur un portable.
+
+La bonne pratique que j'en retire est de **mesurer avant d'arbitrer**. J'ai
+chronométré une exécution avant de fixer les horizons et le nombre de graines, ce
+qui a supprimé une contrainte que je croyais avoir.
+
+Le point d'ingénierie qui a rendu cela possible est l'usage de fixtures pytest à
+portée de **session** plutôt que de module. Les campagnes MMPP servent à la fois le
+critère de conformité et le critère d'équivalence, qui vivent dans deux modules
+différents ; une portée de module aurait payé chaque campagne deux fois. Avec une
+portée de session, les trente exécutions d'une famille sont payées une fois et
+partagées par tous les tests qui les lisent. Résultat contre-intuitif mais mesuré :
+en ajoutant quatre campagnes et en triplant le nombre de graines, la suite complète
+est devenue **plus rapide** qu'avant, parce que l'ancienne version relançait ses
+campagnes à chaque test.
+
+### Renverser une décision écrite
+
+Le dernier point de la semaine est de méthode plutôt que de technique. En semaine
+12, j'avais écrit qu'il n'y aurait **pas** de cinquième runner en ligne de
+commande, au motif que les campagnes assertent une propriété et ne produisent
+aucune figure, ce qui en fait des tests et non des expériences.
+
+En semaine 14, j'ai écrit ce cinquième runner. La moitié de l'argument était
+devenue fausse : les campagnes produisent maintenant deux figures et un tableau de
+résultats, donc le runner satisfait exactement le critère qui justifiait la place
+des quatre autres.
+
+Ce qui m'intéresse ici est la forme du renversement. Une décision documentée
+énonce des prémisses ; quand l'une d'elles cesse de tenir, la décision doit être
+révisée **en nommant laquelle**. C'est très différent d'abandonner une décision en
+silence, ce qui laisserait un lecteur incapable de distinguer un changement d'avis
+motivé d'un oubli. La même chose vaut pour la dette `scipy` de la semaine 13 : mon
+correctif annoncé n'était pas le bon, et le dire vaut mieux que de réécrire
+l'histoire.
+
+**Difficultés**
+
+- Comprendre qu'un nombre de réplications se dérive d'une exigence de précision et
+  non d'un seuil de validité, et savoir formuler la justification sans s'appuyer
+  sur un argument d'autorité.
+- Identifier lequel de $K$ ou de l'horizon est le bon levier sur la largeur d'un
+  intervalle, ce qui demande de savoir d'où vient la dispersion dominante.
+- Formuler correctement l'apport du CvM par rapport au KS : une sensibilité à une
+  autre forme d'écart, et non une précision supérieure.
+- Repérer que deux statistiques que je croyais complémentaires sont en fait deux
+  lectures d'une même mesure, et l'écrire dans les limites plutôt que de laisser
+  croire à deux preuves.
+- Résister à la lecture naturelle d'une p-value élevée comme mesure de
+  ressemblance.
+- Rejouer le test discriminant biais contre bruit sur la bonne variable : le
+  déficit absolu à travers plusieurs horizons, et non le déficit relatif sur un
+  seul.

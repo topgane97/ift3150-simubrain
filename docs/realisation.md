@@ -12,9 +12,9 @@ title: Travail réalisé
 
 # Réalisation
 
-*Dernière mise à jour : semaine 12 (fin juillet 2026).*
+*Dernière mise à jour : semaine 14 (août 2026).*
 
-Cette page présente l'implémentation telle qu'elle existe dans le dépôt : l'architecture, les composantes développées, l'état d'avancement et les décisions de conception. Le détail des tests et de la validation empirique vit dans la page [Évaluation](../evaluation/). ; le déroulé chronologique des tâches vit dans la page [Suivi](../suivi/).
+Cette page présente l'implémentation telle qu'elle existe dans le dépôt : l'architecture, les composantes développées, l'état d'avancement et les décisions de conception. Le détail des tests et de la validation empirique vit dans la page [Évaluation](../evaluation/) ; le déroulé chronologique des tâches vit dans la page [Suivi](../suivi/).
 
 ## Architecture générale
 
@@ -24,14 +24,18 @@ Le code est organisé en src-layout (`src/` et `tests/` comme dossiers frères �
 |--------|-------------|----------------|
 | **Hasard** | `src/simubrain/rng.py` | Dérive et distribue les flux aléatoires à partir d'une seule graine. Ne connaît ni DEVS, ni les modèles. |
 | **Modèles DEVS** | `src/simubrain/models/` | La sémantique de simulation, exprimée en modèles atomiques et couplés sur PyPDEVS. Reçoit le hasard, ne le crée pas. |
-| **Vérification** | `src/simubrain/analysis.py` | Compare l'observé au théorique. N'importe ni PyPDEVS, ni les modèles, ni le RNG : ne connaît que des listes de temps, des signaux en escalier et des paramètres. |
-| **Expériences** | `src/simubrain/experiments/` | Le harnais en ligne de commande qui assemble une simulation, mesure, imprime et trace. C'est la seule couche qui voit les trois autres. |
+| **Vérification** | `src/simubrain/analysis.py` | Compare l'observé au théorique. N'importe ni PyPDEVS, ni les modèles, ni le RNG : ne connaît que des listes de temps, des signaux en escalier, des échantillons de scalaires et des paramètres. |
+| **Orchestration** | `src/simubrain/experiments/` | Les harnais en ligne de commande et le module de campagnes multi-graines. C'est la seule couche qui voit les trois autres. |
 
-Aucune flèche ne remonte : les modèles reçoivent du hasard, la vérification reçoit des résultats, et seule la couche d'expériences a le droit de tout assembler. C'est ce qui permet à la couche de vérification d'observer n'importe quelle source future sans modification, et aux modèles d'être testés isolément.
+Aucune flèche ne remonte : les modèles reçoivent du hasard, la vérification reçoit des résultats, et seule la couche d'orchestration a le droit de tout assembler. C'est ce qui permet à la couche de vérification d'observer n'importe quelle source future sans modification, et aux modèles d'être testés isolément.
 
 La structure expérimentale suit le pattern **Experimental Frame** de Zeigler : la source joue le rôle de generator, le `Transducer` celui de la sonde (l'observation), et la terminaison est gérée par `setTerminationTime` (le rôle d'acceptor).
 
-Stack technique : Python 3.11, PyPDEVS 2.4.2 (installation editable), numpy, scipy (tests statistiques) et matplotlib pour le calcul et les figures, pytest pour les tests, ruff pour le linting et le formatage.
+Stack technique : Python 3.11, PyPDEVS 2.4.2 (installation editable), numpy, scipy et matplotlib pour le calcul et les figures, pytest pour les tests, ruff pour le linting et le formatage.
+
+La frontière que le projet défend sur `scipy` mérite d'être énoncée, parce qu'elle a bougé en semaine 14 : **les estimateurs vivent dans la couche de vérification, les décisions statistiques restent dans les tests**. Un quantile de Student est un estimateur, donc `confidence_interval` appartient à `analysis.py` ; `ks_2samp` et `cramervonmises_2samp` rendent des verdicts, donc ils restent dans la suite de tests. Un modèle ne se juge jamais lui-même.
+
+L'architecture complète, en quatre vues C4 et trois diagrammes de classes participantes, vit dans `docs/architecture.md` du dépôt de code, avec les sources éditables dans `docs/diagrams/`.
 
 ## Composantes réalisées
 
@@ -75,7 +79,9 @@ Le modèle est générique dans le nombre d'états : le mécanisme est identique
 
 Le cœur est un mécanisme à deux horloges concurrentes (*dual-clock*). Une horloge de spike $\text{Exp}(\text{rates}[\text{current}])$ donne le délai jusqu'au prochain spike ; une horloge de transition $\text{Exp}(-Q[\text{current}, \text{current}])$ donne le délai jusqu'au prochain saut de la CTMC, où $-Q[\text{current}, \text{current}]$ est le taux de sortie total de l'état courant. L'avance du temps retourne le minimum des deux délais restants.
 
-Si l'horloge de spike gagne, le modèle émet un spike, re-tire seulement l'horloge de spike, garde l'état CTMC inchangé et **décrémente** l'horloge de transition du temps écoulé plutôt que de la re-tirer, pour ne pas retarder artificiellement un saut déjà en attente. Si l'horloge de transition gagne, le modèle saute vers un nouvel état échantillonné selon $Q[\text{current}]$, puis re-tire les deux horloges. L'absence de mémoire de l'exponentielle rend les deux traitements équivalents en loi.
+Si l'horloge de spike gagne, le modèle émet un spike, re-tire seulement l'horloge de spike, garde l'état CTMC inchangé et **décrémente** l'horloge de transition du temps écoulé plutôt que de la re-tirer, pour ne pas retarder artificiellement un saut déjà en attente. Si l'horloge de transition gagne, le modèle saute vers un nouvel état échantillonné selon $Q[\text{current}]$, puis tire les deux horloges sous le nouvel état.
+
+L'argument qui justifie de jeter le délai de spike en attente lors d'un saut mérite d'être formulé avec soin, parce que la formulation courte est fausse. Ce n'est **pas** que le résiduel et un tirage frais suivent la même loi : le taux vient précisément de changer, et $\text{Exp}(5)$ et $\text{Exp}(40)$ sont deux lois différentes. Ce que l'absence de mémoire donne, c'est que le résiduel **ne porte aucune information** : le temps déjà attendu ne dit rien sur le temps restant. Le jeter ne perd donc rien, et le bon délai suivant est un tirage frais sous le **nouveau** taux.
 
 Les paramètres sont validés à la construction : `rates` strictement positifs, $Q$ carrée et compatible avec `rates`, lignes de somme nulle, hors-diagonale non négative, taux de sortie strictement positif (pas d'état absorbant). Deux flux RNG indépendants sont dérivés par label, `spawn("spikes")` pour l'horloge de spike et `spawn("transitions")` pour les durées de séjour et le choix de l'état suivant.
 
@@ -93,11 +99,11 @@ Le modèle applique le **pré-tirage** de façon poussée : non seulement la dur
 
 ### ModulatedPoissonNeuron
 
-Source de Poisson dont le taux peut être changé en cours de simulation par un message reçu sur son port `rate_in`. Entre deux changements, elle décharge comme un Poisson homogène ; à réception d'un nouveau taux, elle re-tire son intervalle en attente sous ce taux.
+Source de Poisson dont le taux peut être changé en cours de simulation par un message reçu sur son port `rate_in`. Entre deux changements, elle décharge comme un Poisson homogène ; à réception d'un nouveau taux, elle jette son intervalle en attente et en tire un frais sous le nouveau taux.
 
-C'est la contrepartie décomposée de l'horloge de spike interne du `MMPPNeuron`. Le `PoissonNeuron` d'origine est laissé intact : ce modèle ajoute un port d'entrée et donc une nature mixte (source et récepteur), ce qui justifie une classe séparée plutôt qu'une modification (principe ouvert/fermé).
+C'est la contrepartie décomposée de l'horloge de spike interne du `MMPPNeuron`, et elle repose sur le même argument : le résiduel est sans information, donc le jeter ne perd rien, et le mettre à l'échelle serait strictement plus de machinerie pour le même résultat (YAGNI).
 
-Le re-tirage à réception plutôt que la mise à l'échelle du résidu est exact par absence de mémoire de l'exponentielle, et strictement moins de machinerie (YAGNI).
+Le `PoissonNeuron` d'origine est laissé intact : ce modèle ajoute un port d'entrée et donc une nature mixte (source et récepteur), ce qui justifie une classe séparée plutôt qu'une modification (principe ouvert/fermé).
 
 ### DecomposedMMPPExperiment (version en plusieurs briques)
 
@@ -110,7 +116,7 @@ ModulatedPoissonNeuron.output ──► Transducer.input
 
 La chaîne et la source puisent dans deux sous-flux frères indépendants (`"markov"`, `"poisson"`). Le taux initial de la source est fixé à `rates[initial_state]`, ce qui la synchronise avec la chaîne à $t = 0$ sans dépendre de l'ordre d'arrivée des messages.
 
-Les deux écritures du MMPP sont **statistiquement équivalentes, non identiques trace pour trace**, et il vaut la peine d'être précis sur la raison. Ce n'est pas une question d'ordre de consommation : la dérivation par étiquette est order-independent par construction, et l'ordre d'instanciation ne peut donc rien changer. Ce qui diffère est le **chemin de dérivation** de chaque générateur. Le monolithe descend par `"neuron"` puis `"spikes"` et `"transitions"` ; le décomposé descend par `"markov"` menant à `"transitions"` et par `"poisson"` menant à `"spikes"`. Les rôles se correspondent un pour un, mais les clés diffèrent, donc les générateurs sont amorcés différemment. S'y ajoute une divergence interne : la `MarkovChain` pré-tire sa destination dès la construction, là où le monolithe la tire au moment du saut, donc la séquence de tirages à l'intérieur d'un même générateur n'est pas la même non plus. C'est exactement ce que le test d'équivalence est conçu pour trancher.
+Les deux écritures du MMPP sont **statistiquement équivalentes, non identiques trace pour trace**, et il vaut la peine d'être précis sur la raison. Ce n'est pas une question d'ordre de consommation : la dérivation par étiquette est order-independent par construction, et l'ordre d'instanciation ne peut donc rien changer. Ce qui diffère est le **chemin de dérivation** de chaque générateur. Le monolithe descend par `"neuron"` puis `"spikes"` et `"transitions"` ; le décomposé descend par `"markov"` menant à `"transitions"` et par `"poisson"` menant à `"spikes"`. Les rôles se correspondent un pour un, mais les clés diffèrent, donc les générateurs sont amorcés différemment. S'y ajoute une divergence interne : la `MarkovChain` pré-tire sa destination dès la construction, là où le monolithe la tire au moment du saut, donc la séquence de tirages à l'intérieur d'un même générateur n'est pas la même non plus. C'est exactement ce que le test d'équivalence est conçu pour trancher, et un test assert directement cette non-identité pour que la propriété soit affirmée plutôt que supposée.
 
 ### GQueue (file de Gelenbe)
 
@@ -144,9 +150,9 @@ Aucune des deux sources ne sait ce qu'est un G-network : ce sont des `PoissonNeu
 
 ### analysis.py (couche de vérification)
 
-Regroupe les utilitaires de comparaison observé contre théorique : les dataclasses `EmpiricalStats` et `TheoreticalStats`, le calcul des intervalles inter-spikes (`compute_isi`), les statistiques mesurées et prédites, et les fonctions de tracé. Pour le neurone de Poisson homogène, `make_validation_figure` assemble une figure à trois panneaux (raster, distribution des ISI contre $\text{Exp}(\lambda)$, comptage cumulé $N(t)$ contre $\lambda t$).
+Regroupe les utilitaires de comparaison observé contre théorique : les dataclasses `EmpiricalStats` et `TheoreticalStats`, le calcul des intervalles inter-spikes (`compute_isi`), les statistiques mesurées et prédites, les estimateurs sur signaux en escalier, l'intervalle de confiance des campagnes, et les fonctions de tracé. Pour le neurone de Poisson homogène, `make_validation_figure` assemble une figure à trois panneaux (raster, distribution des ISI contre $\text{Exp}(\lambda)$, comptage cumulé $N(t)$ contre $\lambda t$).
 
-La couche a été étendue trois fois sans casser le code existant.
+La couche a été étendue quatre fois sans casser le code existant.
 
 **Pour le MMPP.** `stationary_distribution(Q)` résout $\pi Q = 0$ sous $\sum_i \pi_i = 1$ ; `effective_rate(rates, Q)` en déduit le taux effectif $\bar\lambda$. La figure MMPP (`make_mmpp_validation_figure`) réutilise les panneaux raster et comptage cumulé, agnostiques au processus, mais remplace l'histogramme ISI par une version sans superposition : pour un processus modulé, la loi des ISI est une mixture sur-dispersée, et superposer $\text{Exp}(\bar\lambda)$ suggérerait à tort un ajustement qui ne tient pas.
 
@@ -154,11 +160,27 @@ La couche a été étendue trois fois sans casser le code existant.
 
 **Pour la loi entière de la file.** La moyenne n'est que le premier moment, et deux lois différentes peuvent la partager. `gqueue_length_distribution(lambda_plus, mu, lambda_minus, max_length)` donne la loi stationnaire géométrique $P(N = n) = (1-\rho)\rho^n$, tronquée et **non normalisée** de façon explicite : le docstring déclare que la somme vaut $1 - \rho^{M+1}$ et non 1, pour qu'un appelant qui compare à un histogramme normalisé sache quelle masse lui manque dans la queue. Son pendant empirique est `time_weighted_histogram(records, duration, initial_value)`, qui fait exactement le même découpage en paliers que `time_average` mais range chaque durée dans un dictionnaire indexé par la valeur au lieu de tout sommer dans un accumulateur. La pondération par le temps et non par le nombre de changements est le point : une longueur atteinte souvent mais quittée immédiatement pèse presque rien dans une loi stationnaire, qui est par définition une fraction de temps.
 
-Toutes les fonctions théoriques (`effective_rate`, `theoretical_stats`, `gqueue_mean_length`, `gqueue_length_distribution`) ne consomment **aucune sortie de simulation** : elles ne dépendent que des paramètres, ce qui est la condition pour que leur résultat soit une prédiction et non une description. Un test vérifie d'ailleurs que les deux formes closes de la file sont cohérentes entre elles, en confirmant que $\sum_n n\,P(N = n)$ redonne bien $\mathbb{E}[N]$ : ajouter la loi n'introduit pas une seconde vérité concurrente de la première.
+**Pour les campagnes multi-graines.** `confidence_interval(sample, alpha)` rend l'intervalle de Student sur la moyenne d'un échantillon i.i.d., avec les gardes correspondantes (au moins deux observations, valeurs finies, $\alpha$ dans $(0,1)$). Le quantile de Student plutôt que celui de la normale, parce que l'écart-type est estimé sur l'échantillon et non connu ; un test assert d'ailleurs que l'intervalle produit est bien plus large que ce que donnerait 1.96, de sorte qu'une « simplification » future casserait un test qui explique pourquoi elle serait fausse. `discard_warmup(records, warmup, initial_value)` coupe le transitoire initial d'un signal en escalier et rebase les horodatages. Deux fonctions de tracé complètent l'ajout, `plot_seed_campaign` et `plot_ecdf_comparison`, toutes deux agnostiques au domaine puisqu'elles ne consomment que des scalaires par exécution.
+
+`discard_warmup` est un cas instructif, parce qu'elle existait déjà mais au mauvais endroit : elle vivait dans le runner de la file et était réécrite deux fois dans les tests de conformité, soit trois copies de six lignes dans deux couches qui ne devraient pas les porter. C'est la rédaction du diagramme d'architecture, en semaine 13, qui l'a fait remonter. Le déplacement a en outre révélé une hypothèse cachée : la fonction retombait silencieusement sur 0 pour la valeur tenue avant la coupure, ce qui est une connaissance de file. Elle prend maintenant ce paramètre explicitement, exactement pour la même raison que `time_average`.
+
+Toutes les fonctions théoriques (`effective_rate`, `theoretical_stats`, `gqueue_mean_length`, `gqueue_length_distribution`) ne consomment **aucune sortie de simulation** : elles ne dépendent que des paramètres, ce qui est la condition pour que leur résultat soit une prédiction et non une description. Un test vérifie d'ailleurs que les deux formes closes de la file sont cohérentes entre elles, en confirmant que $\sum_n n\,P(N = n)$ redonne bien $\mathbb{E}[N]$ : ajouter la loi n'introduit pas une seconde vérité concurrente de la première. Un second test, ajouté en semaine 14, assert le pendant empirique de cette cohérence : la moyenne pondérée de l'histogramme temporel doit égaler `time_average` à la précision flottante près, puisque les deux fonctions font le même découpage et ne diffèrent que par l'accumulateur.
+
+### campaigns.py (campagnes multi-graines)
+
+Module de la couche d'orchestration qui exécute une famille sous $K$ graines indépendantes et rend **une mesure scalaire par exécution**.
+
+Cette agrégation est la raison d'être du module. Une statistique calculée *à l'intérieur* d'une exécution n'est pas i.i.d. : les ISI d'un MMPP se groupent par régime de la CTMC, une trajectoire de longueur de file est autocorrélée par construction. Agréger à une valeur par exécution restaure l'indépendance entre les entrées, ce dont les deux critères statistiques ont besoin, la conformité pour bâtir un intervalle sur la dispersion inter-graines, l'équivalence pour fournir aux tests à deux échantillons des entrées qui respectent leur hypothèse.
+
+Deux structures de résultat, et le fait qu'il y en ait deux n'est pas une duplication accidentelle. `SpikeCampaign` porte le compte de spikes et l'ISI moyen par exécution ; `QueueCampaign` porte la moyenne temporelle et l'occupation pondérée par exécution. C'est exactement la distinction que `analysis.py` fait déjà entre un train d'événements et un signal en escalier. Les fusionner en une seule structure aurait produit un enregistrement dont la moitié des champs est vide pour n'importe quelle famille donnée, ce qui est la forme que prend une mauvaise abstraction.
+
+Le module ne contient **aucune forme close et ne prend aucune décision statistique** : les campagnes mesurent, `analysis` prédit, la suite de tests confronte les deux. Il expose enfin la constante `SEEDS`, les entiers consécutifs de 1 à 30, partagée par toutes les familles.
+
+Un détail de conception vaut d'être signalé. La fonction interne qui exécute une campagne de spikes reçoit le **constructeur** du modèle couplé en paramètre, plutôt que de brancher sur un type de modèle. C'est de l'injection de dépendance ordinaire et non un patron : trois sites d'appel, aucune hiérarchie, aucune interface à implémenter. La fonction ignore donc quelle famille elle exécute.
 
 ### Les harnais d'expérience
 
-Quatre points d'entrée en ligne de commande, sur le même patron : parser les arguments, simuler, imprimer la comparaison, écrire la figure.
+Quatre points d'entrée à graine unique, sur le même patron : parser les arguments, simuler, imprimer la comparaison, écrire la figure.
 
 | Commande | Ce qu'elle valide |
 |----------|-------------------|
@@ -171,29 +193,33 @@ Pour les runners MMPP et G-queue, les paramètres du modèle sont fixés dans le
 
 Le runner de la file expose deux arguments propres à la nature stationnaire de sa validation. `--warmup` (100 s par défaut) écarte le transitoire initial avant de moyenner, puisque la file démarre vide et que ce n'est pas un tirage de la loi stationnaire. Ce chiffre n'est pas arbitraire : le temps de relaxation est de l'ordre de $1/[(\mu + \lambda^-)(1-\rho)^2] \approx 0.19$ s au cas de référence, donc cent secondes représentent plusieurs centaines de temps de relaxation pour un coût de 5 % de la fenêtre. `--plot-window` (20 s par défaut) borne l'extrait tracé : une estimation stationnaire demande un horizon qui contient des dizaines de milliers de changements, et les tracer tous produit une bande pleine dont le bord supérieur est une enveloppe de maxima locaux, pas une trajectoire. La moyenne reste calculée sur la fenêtre entière, indépendamment de ce qui est tracé.
 
-Il n'y a délibérément **pas de cinquième runner** pour les campagnes multi-graines ni pour le cas limite M/M/1. Ces validations assertent une propriété et ne produisent aucune figure, donc elles vivent dans `tests/test_gqueue_conformance.py`. Un cinquième runner aurait dupliqué le quatrième à un paramètre près.
+Un cinquième point d'entrée s'est ajouté en semaine 14 :
+
+    python -m simubrain.experiments.run_validation_campaigns
+
+Il rejoue toutes les campagnes sur les trente graines, écrit les deux figures de synthèse et imprime les tableaux de résultats en markdown. C'est la **source unique** des chiffres publiés : aucune valeur n'est recopiée à la main dans la documentation ou le rapport.
+
+Ce runner **renverse une décision antérieure**, et le renversement mérite d'être écrit plutôt que subi. La décision de semaine 12 refusait un cinquième runner au motif que les campagnes assertent une propriété et ne produisent aucune figure, ce qui en faisait des tests et non des expériences. La moitié de cet argument est devenue fausse : les campagnes produisent maintenant deux figures et un tableau, donc le runner satisfait exactement le critère qui justifie la place des quatre autres. Les verdicts, eux, restent dans la suite de tests : ce runner rend visible, il ne décide pas.
 
 ## État d'avancement
 
-Le code est **depuis la fin de la semaine 12**. Réalisé et committé :
+Réalisé et committé :
 
 - **l'architecture en trois couches** : hasard injecté (`rng.py`), modèles DEVS, vérification indépendante du simulateur ;
-- **la famille Poisson** : source, sonde, assemblage, expérience, validée contre $\lambda$ ;
-- **la famille MMPP en une brique** : neurone dual-clock générique, validé contre $\bar\lambda$ ;
-- **la famille MMPP en plusieurs briques** : `MarkovChain` + `ModulatedPoissonNeuron` + `Transducer`, validée contre $\bar\lambda$ ;
-- **le critère d'équivalence** : test de Kolmogorov-Smirnov entre les deux écritures du MMPP, sur dix graines indépendantes ;
+- **la famille Poisson** : source, sonde, assemblage, expérience, validée contre $\lambda$ sur 30 graines ;
+- **la famille MMPP en une brique** : neurone dual-clock générique, validé contre $\bar\lambda$ sur 30 graines ;
+- **la famille MMPP en plusieurs briques** : `MarkovChain` + `ModulatedPoissonNeuron` + `Transducer`, validée contre $\bar\lambda$ indépendamment de la version monolithique ;
+- **le critère d'équivalence** : tests de Kolmogorov-Smirnov **et** de Cramér-von Mises entre les deux écritures du MMPP, sur trente graines indépendantes ;
 - **la famille G-networks** : `GQueue` atomique, `GQueueExperiment` couplé réutilisant deux `PoissonNeuron` comme sources, validée contre $\mathbb{E}[N] = \rho/(1-\rho)$ ;
-- **la campagne de conformité multi-graines** : huit graines à 1500 s avec intervalle de confiance de Student, qui remplace la tolérance relative sur une graine unique ;
 - **le cas limite M/M/1** ($\lambda^- = 0$) comme contrôle croisé sur le même dispositif ;
-- **la validation contre la loi stationnaire entière** de la file, et non contre son seul premier moment ;
-- **l'extension de la couche de vérification aux signaux en escalier** (`time_average`, `time_weighted_histogram`), qui reste agnostique au domaine ;
+- **la validation contre la loi stationnaire entière** de la file, avec un intervalle de confiance par longueur plutôt qu'une tolérance choisie ;
+- **le module de campagnes multi-graines** (`campaigns.py`) et son runner de publication, qui donnent aux trois familles le même dispositif de mesure ;
+- **l'extension de la couche de vérification** aux signaux en escalier (`time_average`, `time_weighted_histogram`, `discard_warmup`) et aux échantillons de scalaires (`confidence_interval`), le tout agnostique au domaine ;
 - **la résorption de la dette technique du `PoissonNeuron`** (pré-tirage), prérequis à sa réutilisation dans la file de Gelenbe ;
-- une suite pytest de 142 tests couvrant les invariants structurels et déterministes des trois couches, plus les campagnes statistiques (détail dans Évaluation).
+- **la synthèse architecturale** : quatre vues C4, trois diagrammes de classes participantes et un diagramme de séquence, dans `docs/architecture.md`, avec sources éditables ;
+- une suite pytest de **184 tests** couvrant les invariants structurels et déterministes des trois couches, plus les campagnes statistiques (détail dans Évaluation).
 
-À venir :
-
-- diagrammes UML (classes en couches) et modèle C4, et synthèse de l'architecture et des trois critères sur les trois familles ;
-- rapport final et présentation.
+À venir : rapport final et présentation.
 
 ## Décisions de conception
 
@@ -203,11 +229,15 @@ Plutôt que chaque modèle instancie son propre `np.random.default_rng(seed)`, u
 
 Cela isole les flux entre composants, garde les exécutions reproductibles, centralise le tirage en un point d'échange unique, et rend chaque modèle testable isolément avec un flux contrôlé. La dérivation par label est order-independent, condition nécessaire pour les modèles multi-sources et les réseaux, et c'est elle qui rend le cas M/M/1 directement comparable au cas de référence malgré la source manquante.
 
+L'alternative naturelle aurait été un générateur global au niveau du module, autrement dit un **Singleton**. Il détruirait exactement la propriété que le dépôt existe à fournir : l'ordre de construction déciderait des tirages, et ajouter un modèle perturberait tous les autres. L'absence de ce patron est donc une décision d'architecture à part entière, et non un oubli.
+
 ### Pré-tirage dans l'état
 
 DEVS exige que le calcul de l'avance du temps et la fonction de sortie soient **purs** : appelables plusieurs fois, même réponse, aucune modification. Un modèle stochastique doit pourtant tirer. La contradiction se résout en tirant à l'avance et en rangeant le résultat dans l'état : les fonctions pures ne tirent plus, elles lisent.
 
 Sans cette règle, le simulateur qui interroge le modèle plusieurs fois avant d'agir obtient une réponse différente à chaque appel, consomme le flux à chaque interrogation, et la simulation produit des résultats faux sans jamais planter. C'est un invariant testé explicitement (`test_time_advance_is_pure`).
+
+La contrainte n'est pas stylistique, elle découle du fait que PyPDEVS est un **cadriciel et non une librairie** : ce n'est pas ce code qui appelle la boucle de simulation, c'est le simulateur qui appelle `timeAdvance`, `outputFnc` et les transitions. Le nombre d'appels n'est donc pas décidé ici.
 
 Le `PoissonNeuron` a longtemps fait exception : il tirait directement dans son `timeAdvance`. Le tirage y était inoffensif tant que le modèle restait une source isolée, dont l'avance du temps n'est interrogée qu'une fois par événement, mais serait devenu un bug silencieux dès son insertion dans un modèle couplé recevant des entrées. La famille G-networks a rendu la correction obligatoire, puisqu'elle réutilise exactement ce modèle dans un assemblage. La dette est résorbée.
 
@@ -217,9 +247,11 @@ Le `MarkovChain` pousse le pré-tirage à sa conclusion : la destination du proc
 
 `analysis.py` ne dépend ni des modèles DEVS, ni du simulateur, ni du RNG. Cela garde la vérification stable et lui permet d'observer toute source future sans changement.
 
-L'extension au MMPP l'a confirmé en pratique : les panneaux raster et comptage cumulé ont été réutilisés tels quels, seul le panneau ISI a dû être spécialisé. L'extension à la file de Gelenbe a été l'épreuve la plus sévère, puisque la grandeur validée n'est plus un train d'événements mais une charge stationnaire. Trois options se présentaient : reconstruire $N(t)$ depuis les arrivées et les départs, ce qui aurait fait fuir la sémantique file dans la couche de vérification ; échantillonner périodiquement, ce qui aurait introduit un biais de discrétisation et un modèle de plus à valider ; ou publier la longueur et intégrer l'escalier avec une fonction agnostique. La troisième a été retenue, et la couche est sortie étendue sans être contaminée. Le passage à la loi entière n'a rien changé à cet équilibre : `time_weighted_histogram` ignore autant ce qu'est une file que `time_average`.
+L'extension au MMPP l'a confirmé en pratique : les panneaux raster et comptage cumulé ont été réutilisés tels quels, seul le panneau ISI a dû être spécialisé. L'extension à la file de Gelenbe a été l'épreuve la plus sévère, puisque la grandeur validée n'est plus un train d'événements mais une charge stationnaire. Trois options se présentaient : reconstruire $N(t)$ depuis les arrivées et les départs, ce qui aurait fait fuir la sémantique file dans la couche de vérification ; échantillonner périodiquement, ce qui aurait introduit un biais de discrétisation et un modèle de plus à valider ; ou publier la longueur et intégrer l'escalier avec une fonction agnostique. La troisième a été retenue, et la couche est sortie étendue sans être contaminée.
 
-Corollaire strict : les fonctions théoriques ne prennent que des paramètres en entrée, jamais un résultat de simulation. Une prédiction qui regarde l'observation cesse d'être une prédiction.
+Les campagnes ont fourni une quatrième épreuve, et la même réponse : `confidence_interval` ne connaît que des nombres, et le module de campagnes vit dans la couche d'orchestration, au-dessus. La seule frontière qui a bougé est celle de `scipy`, qui entre dans le paquet pour un quantile. Le déplacement est explicite et la ligne défendue reste nette : les estimateurs montent dans la couche de vérification, les décisions statistiques restent dans les tests. Une incohérence documentée en semaine 13, `scipy` déclaré en dépendance du paquet alors qu'aucun module ne l'importait, se trouve du même coup résolue par le haut plutôt que corrigée.
+
+Corollaire strict, inchangé : les fonctions théoriques ne prennent que des paramètres en entrée, jamais un résultat de simulation. Une prédiction qui regarde l'observation cesse d'être une prédiction.
 
 ### Le signe porté par le port, pas par la charge utile
 
@@ -247,7 +279,7 @@ Deux issues existaient. Faire écouter les arrivées par une seconde sonde et re
 
 Sur toute arrivée dans une file occupée, le temps de service restant est décrémenté du temps écoulé plutôt que re-tiré. Sous un service exponentiel, les deux sont équivalents en loi. Décrémenter reste pourtant correct quelle que soit la loi de service, alors que re-tirer ne l'est que sous l'exponentielle : le choix évite d'enfouir silencieusement une hypothèse que la classe ne déclare pas.
 
-Le même raisonnement gouverne l'horloge de transition du `MMPPNeuron`.
+Le même raisonnement gouverne l'horloge de transition du `MMPPNeuron` quand un spike gagne : le saut en attente n'est pas re-tiré, il est décrémenté, pour ne pas le retarder artificiellement. Le cas du changement d'état est différent et suit l'argument d'absence d'information exposé plus haut.
 
 ### Ne pas surcharger la confluence, mais l'asserter
 
@@ -272,6 +304,12 @@ La part réellement commune est plus petite qu'elle n'en a l'air : trois lignes.
 S'y ajoute le calendrier : refactorer quatre modèles couplés et leurs quatre modules de tests la semaine du gel, sans livrer aucune capacité nouvelle en échange, achèterait de la propreté au prix du risque. Une dette prise sciemment dans un prototype de recherche et une dette prise par inadvertance dans un produit livré ne sont pas le même objet.
 
 La condition de révision est énoncée plutôt que laissée implicite : un cinquième frame dont la composition de sources correspondrait exactement à un existant, même arité et même sémantique d'accesseur, ou l'arrivée d'un second type de sonde que tous les frames devraient supporter. Ni l'un ni l'autre n'existe aujourd'hui. L'argument complet vit dans le docstring de module de `mmpp_experiment.py`, c'est-à-dire à l'endroit où la question se pose au lecteur du code.
+
+### Deux tests statistiques, sans patron Stratégie
+
+L'ajout du test de Cramér-von Mises à côté du Kolmogorov-Smirnov met deux algorithmes dans le même rôle, ce qui est le déclencheur naturel d'un patron **Stratégie**. Il n'a pas été introduit, et le refus est motivé.
+
+Ce qui varie ici, ce sont deux appels à SciPy à l'intérieur d'un module de test : pas d'état, pas de cycle de vie, pas de troisième cas en vue. La règle des trois n'est pas atteinte, et une Stratégie serait de l'échafaudage autour de six lignes. Le module de campagnes pose la même question et y répond de la même façon : passer le constructeur du modèle en paramètre est de l'injection ordinaire, pas un patron.
 
 ### Stockage de la liste d'événements hors de l'état
 
