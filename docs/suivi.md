@@ -352,3 +352,45 @@ Ce journal documente l'avancement du projet semaine par semaine : objectifs fix�
 - Ajouter le test de Cramér-von Mises en complément du KS dans test_mmpp_equivalence.py et relancer la campagne à dix graines pour publier les valeurs réelles
 - Rédiger le rapport final 
 - Commencer à préparer la présentation finale de 25 minutes
+
+---
+## Semaine 14 (3 août au 7 août 2026): *Généralisation du dispositif de mesure*
+
+**Objectifs**
+
+- Ajouter le test de Cramér-von Mises en complément du KS dans test_mmpp_equivalence.py, suivant la recommandation de M. Syriani
+- Porter la discipline multi-graines aux familles Poisson et MMPP, qui étaient encore validées sur une exécution unique
+- Uniformiser le nombre de graines à 30 par famille, valeur recommandée par l'équipe
+- Résorber les trois dettes d'architecture repérées en semaine 13 (fuite de couche, dépendance scipy, assertion tautologique)
+- Produire les figures et le tableau de résultats qui serviront au rapport et à la présentation
+- Mettre à jour la documentation du dépôt et les pages du site
+- Git push les nouveaux ajouts
+- Rapport final à rédiger
+
+**Accompli**
+
+- [X] Remonter discard_warmup du runner de la file vers analysis.py, ce qui supprime deux réécritures dans les tests et met le warm-up sous test ; le déplacement a révélé une hypothèse cachée (la valeur tenue avant la coupure retombait silencieusement sur 0, ce qui est une connaissance de file), corrigée en rendant le paramètre obligatoire
+- [X] Supprimer l'assertion tautologique de test_g_queue.py, déjà couverte par le test qui commit l'état
+- [X] Implémenter confidence_interval dans analysis.py : intervalle de Student sur un échantillon i.i.d., avec un test qui pin le choix de Student contre la normale
+- [X] Implémenter campaigns.py : K exécutions indépendantes par famille, une mesure scalaire par exécution, deux structures de résultat selon la nature du signal (train d'événements ou escalier)
+- [X] Convertir les modules de conformité et d'équivalence à des fixtures de portée session, ce qui fait partager les campagnes entre modules ; la suite complète est devenue plus rapide malgré trois fois plus de graines
+- [X] Porter K à 30 graines, entiers consécutifs de 1 à 30, uniformément sur les trois familles
+- [X] Ajouter les campagnes de conformité Poisson et MMPP (les deux écritures assertées indépendamment l'une de l'autre), et deux tests sur la dispersion qui séparent un Poisson d'un processus modulé
+- [X] Ajouter le test de Cramér-von Mises à côté du KS sur les deux statistiques d'équivalence, sans introduire de patron Stratégie
+- [X] Porter la validation de la loi entière de la file à 30 graines avec un intervalle par longueur, ce qui remplace la tolérance absolue de 0.02
+- [X] Implémenter run_validation_campaigns : source unique des chiffres publiés, deux figures de synthèse et le tableau de résultats en markdown
+- [X] Corriger la formulation de l'absence de mémoire dans mmpp_neuron.py et modulated_poisson_neuron.py (le résiduel ne porte aucune information, et non « même loi » puisque le taux change)
+- [X] Corriger la formulation des chemins de dérivation dans les modules décomposés et le README
+- [X] Mettre à jour docs/architecture.md et le README avec les résultats de campagne et les dettes résolues
+- [X] Scinder le diagramme de classes en trois vues de classes participantes et régénérer les fichiers draw.io concernés
+- [X] Vérifier le code : ruff check, ruff format, pytest (184 tests verts)
+- [X] Mettre à jour les pages Évaluation, Réalisation et Journal de bord du site
+- [X] Git push les pages du site
+- [X] Rédiger le rapport final mais il reste des corrections et des relectures 
+
+
+**Prochaines étapes**
+
+- Corriger et continuer de relire le rapport final (remise le 14 août)
+- Préparer le rapport préliminaire pour mardi 11 août
+- Préparer la présentation finale de 25 minutes avec powerpoint et pratiquer
