@@ -11,7 +11,7 @@ Ce journal documente l'avancement du projet semaine par semaine : objectifs fix�
 - prépaprer la rencontre avec Abdelhamid pour clarifier le projet(1er mai)
 - Rédiger la proposition de projet IFT 3150 pour Louis-Édouard Lafontant (échéance 8 mai) 
 - Lire la description officielle du projet SimuBrAIn (Syriani et al.)
-- Commencer la lecture de Mascart et al. 2022 (ATiTA / ATiTAP) et les autres ressources sur DEVS
+- Commencer la lecture des ressources fournies sur DEVS et la simulation à événements discrets
 
 **Accompli**
 
@@ -383,7 +383,7 @@ Ce journal documente l'avancement du projet semaine par semaine : objectifs fix�
 - [X] Corriger la formulation des chemins de dérivation dans les modules décomposés et le README
 - [X] Mettre à jour docs/architecture.md et le README avec les résultats de campagne et les dettes résolues
 - [X] Scinder le diagramme de classes en trois vues de classes participantes et régénérer les fichiers draw.io concernés
-- [X] Vérifier le code : ruff check, ruff format, pytest (184 tests verts)
+- [X] Vérifier le code : ruff check, ruff format, pytest (187 tests verts)
 - [X] Mettre à jour les pages Évaluation, Réalisation et Journal de bord du site
 - [X] Git push les pages du site
 - [X] Rédiger le rapport final mais il reste des corrections et des relectures 

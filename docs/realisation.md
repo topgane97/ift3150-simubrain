@@ -217,7 +217,7 @@ Réalisé et committé :
 - **l'extension de la couche de vérification** aux signaux en escalier (`time_average`, `time_weighted_histogram`, `discard_warmup`) et aux échantillons de scalaires (`confidence_interval`), le tout agnostique au domaine ;
 - **la résorption de la dette technique du `PoissonNeuron`** (pré-tirage), prérequis à sa réutilisation dans la file de Gelenbe ;
 - **la synthèse architecturale** : quatre vues C4, trois diagrammes de classes participantes et un diagramme de séquence, dans `docs/architecture.md`, avec sources éditables ;
-- une suite pytest de **184 tests** couvrant les invariants structurels et déterministes des trois couches, plus les campagnes statistiques (détail dans Évaluation).
+- une suite pytest de **187 tests** couvrant les invariants structurels et déterministes des trois couches, plus les campagnes statistiques (détail dans Évaluation).
 
 À venir : rapport final et présentation.
 

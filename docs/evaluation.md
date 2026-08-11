@@ -22,7 +22,7 @@ La validation opère selon les trois critères de correction posés en hypothès
 
 ### Critère 1 : les invariants
 
-La suite pytest compte **184 tests**, dont la grande majorité ne lance aucune simulation.
+La suite pytest compte **187 tests**, dont la grande majorité ne lance aucune simulation.
 
 Côté structure : le câblage des sous-modèles, les gardes de validité qui lèvent une exception (`rate > 0` pour le neurone de Poisson ; pour le MMPP et la chaîne de Markov, taux strictement positifs, $Q$ carrée et compatible avec `rates`, lignes de somme nulle, hors-diagonale non négative, taux de sortie strictement positif ; pour la file de Gelenbe, taux de service strictement positif et longueur initiale non négative ; pour son assemblage, $\lambda^-$ non négatif), le `timeAdvance` infini du Transducer, et l'enregistrement chronologique des couples `(temps, payload)` dans l'horizon de simulation.
 
@@ -150,7 +150,7 @@ L'arrivée de `confidence_interval` fait entrer `scipy` dans le paquet, là où 
 
 ## Résultats obtenus
 
-La suite pytest passe entièrement au vert (**184 tests**). L'intégralité des campagnes, soit 180 exécutions dont 60 de 1500 secondes, s'exécute en quelques secondes sur un portable, ce qui rend la validation entière reproductible par n'importe qui en une commande.
+La suite pytest passe entièrement au vert (**187 tests**). L'intégralité des campagnes, soit 150 exécutions dont 60 de 1500 secondes, s'exécute en quelques secondes sur un portable, ce qui rend la validation entière reproductible par n'importe qui en une commande.
 
 ### Tableau de synthèse
 

@@ -1,6 +1,6 @@
 # SimuBrAIn: Architecture logicielle pour la simulation stochastique à événements discrets
 
-!!! abstract "Projet IFT 3150 — Été 2026"
+!!! abstract "Projet IFT 3150, Été 2026"
 
     **Étudiant :** Ryan Chahri, 
     **Superviseur académique :** Eugène Syriani (UdeM), 
@@ -90,7 +90,7 @@ Puisqu'on ne peut pas comparer une sortie aléatoire à une valeur fixe, on vér
 
     On pourrait croire que deux modèles équivalents doivent produire **exactement la même suite d'événements**. C'est faux, et c'est le piège central du projet.
 
-    Les deux versions puisent dans le hasard dans un ordre différent : la version en une brique tire dans un seul flux, la version en plusieurs briques tire dans deux flux séparés. Leurs suites d'événements **diffèrent nécessairement**. Exiger qu'elles soient identiques déclarerait fausse toute décomposition, y compris les correctes.
+    Les deux versions dérivent leurs générateurs le long de chemins d'étiquettes différents : la version en une brique tire dans un seul flux, la version en plusieurs briques tire dans deux flux séparés, chacun identifié par son propre nom. Leurs suites d'événements **diffèrent nécessairement**. Exiger qu'elles soient identiques déclarerait fausse toute décomposition, y compris les correctes.
 
     Le bon critère n'est pas « même suite » mais **« même loi de probabilité »**. Deux dés honnêtes ne donnent pas la même suite de résultats ; ce sont pourtant le même dé. C'est cette égalité-là qu'il faut tester, et elle se teste par comparaison de distributions.
 
