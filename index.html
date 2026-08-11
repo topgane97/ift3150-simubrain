@@ -964,7 +964,7 @@
 
 <h1 id="simubrain-architecture-logicielle-pour-la-simulation-stochastique-a-evenements-discrets">SimuBrAIn: Architecture logicielle pour la simulation stochastique à événements discrets<a class="headerlink" href="#simubrain-architecture-logicielle-pour-la-simulation-stochastique-a-evenements-discrets" title="Permanent link">&para;</a></h1>
 <div class="admonition abstract">
-<p class="admonition-title">Projet IFT 3150 — Été 2026</p>
+<p class="admonition-title">Projet IFT 3150, Été 2026</p>
 <p><strong>Étudiant :</strong> Ryan Chahri, 
 <strong>Superviseur académique :</strong> Eugène Syriani (UdeM), 
 <strong>Expert :</strong> Alexandre Muzy (CNRS), 
@@ -1065,7 +1065,7 @@
 <div class="admonition danger">
 <p class="admonition-title">Le point délicat : deux sens de « pareil »</p>
 <p>On pourrait croire que deux modèles équivalents doivent produire <strong>exactement la même suite d'événements</strong>. C'est faux, et c'est le piège central du projet.</p>
-<p>Les deux versions puisent dans le hasard dans un ordre différent : la version en une brique tire dans un seul flux, la version en plusieurs briques tire dans deux flux séparés. Leurs suites d'événements <strong>diffèrent nécessairement</strong>. Exiger qu'elles soient identiques déclarerait fausse toute décomposition, y compris les correctes.</p>
+<p>Les deux versions dérivent leurs générateurs le long de chemins d'étiquettes différents : la version en une brique tire dans un seul flux, la version en plusieurs briques tire dans deux flux séparés, chacun identifié par son propre nom. Leurs suites d'événements <strong>diffèrent nécessairement</strong>. Exiger qu'elles soient identiques déclarerait fausse toute décomposition, y compris les correctes.</p>
 <p>Le bon critère n'est pas « même suite » mais <strong>« même loi de probabilité »</strong>. Deux dés honnêtes ne donnent pas la même suite de résultats ; ce sont pourtant le même dé. C'est cette égalité-là qu'il faut tester, et elle se teste par comparaison de distributions.</p>
 <p><strong>Ma sous-hypothèse :</strong> si un test statistique n'arrive pas à distinguer la version en une brique de sa version en plusieurs briques, alors la décomposition est <strong>une écriture valide du même modèle</strong>. C'est précisément le critère dont l'extension stochastique de DEVS a besoin pour justifier qu'il est composable. </p>
 </div>
