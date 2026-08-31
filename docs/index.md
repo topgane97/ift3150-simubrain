@@ -6,7 +6,8 @@
     **Superviseur académique :** Eugène Syriani (UdeM), 
     **Expert :** Alexandre Muzy (CNRS), 
     **Encadrant :** Abdelhamid (maîtrise).
-
+!!! info "In English"
+    An [English summary](en.md) of the project is available.
 ## Contexte
 
 SimuBrAIn est un projet de recherche international **UdeM (Canada) / CNRS (France)** dont l'objectif à long terme est de construire des **jumeaux numériques personnalisés du cerveau humain**. Le projet s'articule autour de trois axes complémentaires :
