@@ -1,0 +1,1370 @@
+
+<!doctype html>
+<html lang="fr" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Template de site web pour le cours IFT3150">
+      
+      
+        <meta name="author" content="Louis-Edouard Lafontant">
+      
+      
+        <link rel="canonical" href="https://ift3150-template.github.io/en/">
+      
+      
+        <link rel="prev" href="../evaluation/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>English summary - Simubrain IFT3150</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../css/no-sidebar.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#simubrain-software-architecture-for-stochastic-discrete-event-simulation" class="md-skip">
+          Aller au contenu
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href=".." title="Simubrain IFT3150" class="md-header__button md-logo" aria-label="Simubrain IFT3150" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Simubrain IFT3150
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              English summary
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Recherche">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Partager" aria-label="Partager" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initialisation de la recherche
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ift3150-template/ift3150-template.github.io" title="Aller au dépôt" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ift3150-template
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Onglets" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Vue d'ensemble
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../suivi/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Suivi
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../analyse/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Journal de Bord
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../realisation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Réalisation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../evaluation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Évaluation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  English
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Simubrain IFT3150" class="md-nav__button md-logo" aria-label="Simubrain IFT3150" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Simubrain IFT3150
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ift3150-template/ift3150-template.github.io" title="Aller au dépôt" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ift3150-template
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vue d'ensemble
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../suivi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suivi
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../analyse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Journal de Bord
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../realisation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Réalisation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Évaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    English
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    English
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hypothesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hypothesis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hypothesis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-three-correctness-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The three correctness criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-three-layers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The three layers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-central-subtlety-two-senses-of-the-same" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The central subtlety: two senses of "the same"
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-families" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model families
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#criterion-2-in-one-figure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Criterion 2 in one figure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#criterion-3-in-one-figure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Criterion 3 in one figure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope-and-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope and limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#long-term-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Long-term impact
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stack-and-reproducibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stack and reproducibility
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-french-pages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The French pages
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hypothesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hypothesis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hypothesis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-three-correctness-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The three correctness criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-three-layers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The three layers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-central-subtlety-two-senses-of-the-same" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The central subtlety: two senses of "the same"
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-families" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model families
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#criterion-2-in-one-figure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Criterion 2 in one figure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#criterion-3-in-one-figure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Criterion 3 in one figure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope-and-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope and limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#long-term-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Long-term impact
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stack-and-reproducibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stack and reproducibility
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-french-pages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The French pages
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="simubrain-software-architecture-for-stochastic-discrete-event-simulation">SimuBrAIn: Software Architecture for Stochastic Discrete-Event Simulation<a class="headerlink" href="#simubrain-software-architecture-for-stochastic-discrete-event-simulation" title="Permanent link">&para;</a></h1>
+<div class="admonition abstract">
+<p class="admonition-title">IFT 3150 project, Summer 2026</p>
+<p><strong>Student:</strong> Ryan Chahri,
+<strong>Academic supervisor:</strong> Eugene Syriani (UdeM),
+<strong>Domain expert:</strong> Alexandre Muzy (CNRS),
+<strong>Daily supervisor:</strong> Abdelhamid (MSc).</p>
+<p>This page is an English summary of the project. The detailed pages (research log, implementation, evaluation) are in French.</p>
+</div>
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<p>SimuBrAIn is an international <strong>UdeM (Canada) / CNRS (France)</strong> research project whose long-term goal is to build <strong>personalized digital twins of the human brain</strong>. Axis 1, Objective 2 aims at a <strong>stochastic extension of DEVS</strong>: a single formalism able to express Poisson processes, Markov chains and queueing systems under one notation. That formalism is designed by Abdelhamid, a master's student on the project.</p>
+<div class="admonition note">
+<p class="admonition-title">My scope</p>
+<p>This project is <strong>not</strong> the stochastic DEVS extension. It answers a distinct and prior question: <strong>what software infrastructure lets you build a stochastic DEVS model whose correctness can be established?</strong></p>
+<p>Without an answer to that question, a stochastic extension of DEVS is an idea nobody knows how to verify. I built that infrastructure and put it to the test.</p>
+</div>
+<h2 id="the-problem">The problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
+<p>DEVS says how to <strong>describe</strong> a discrete-event system. It says nothing about how to <strong>write the code</strong>, nor about how to <strong>verify that the code is correct</strong> once the system contains randomness.</p>
+<p>Written naively, a stochastic model conflates three concerns in a single class: the model logic, the source of randomness, and the verification of the resulting distribution. That conflation produces three concrete failures.</p>
+<div class="admonition warning">
+<p class="admonition-title">Three failures</p>
+<p><strong>1. Randomness welded to the model.</strong> If each model creates its own generator, construction order changes the results. Adding one neuron to a network perturbs the spike trains of every other neuron. Experiments stop being reproducible and models can no longer be tested in isolation.</p>
+<p><strong>2. Verification locked inside the model.</strong> If a model computes its own statistics, that verification code serves no other model and must be rewritten for every new source.</p>
+<p><strong>3. Nothing to compare the output against.</strong> An ordinary software test compares an obtained result to an expected one. A stochastic model has no expected result: it returns a different value on every run. "Is this model correct?" has no ready yes-or-no answer.</p>
+</div>
+<p>And one question that governs all the others. The same process can be written <strong>as a single block</strong>, or <strong>as several connected blocks</strong> doing the same thing together. The second form is what a brain-scale project needs, because only it composes and reuses. So:</p>
+<blockquote>
+<p><strong>How do you demonstrate that the multi-block version does the same thing as the single-block one?</strong></p>
+</blockquote>
+<p>Until that question has an answer, calling a stochastic extension of DEVS composable is a claim nobody can check.</p>
+<h2 id="hypothesis">Hypothesis<a class="headerlink" href="#hypothesis" title="Permanent link">&para;</a></h2>
+<p>A stochastic DEVS model becomes reproducible, testable and composable under two commitments: <strong>three watertight layers</strong>, and <strong>three correctness criteria</strong> replacing the <code>assert actual == expected</code> that does not exist here.</p>
+<h3 id="the-three-correctness-criteria">The three correctness criteria<a class="headerlink" href="#the-three-correctness-criteria" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Level</th>
+<th>Name</th>
+<th>Question</th>
+<th>Nature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td><strong>Invariants</strong></td>
+<td>Does the model obey its own rules, whatever is drawn?</td>
+<td>Certainty</td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td><strong>Conformance to theory</strong></td>
+<td>Does observed output fall inside the confidence interval around a closed form computed in advance?</td>
+<td>Statistical</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td><strong>Equivalence</strong></td>
+<td>Are two writings of the same process statistically indistinguishable?</td>
+<td>Statistical</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Level 1</strong> runs no simulation: purity of <code>timeAdvance</code>, message-bag contract, rejection of invalid parameters, seed reproducibility, <span class="arithmatex">\(n \geq 0\)</span> on a queue.</p>
+<p><strong>Level 2</strong> computes the prediction from the model parameters alone. The theoretical function never reads simulation output, otherwise it would describe rather than predict.</p>
+<p><strong>Level 3</strong> writes the same process twice, runs both, and checks that no statistical test can tell them apart.</p>
+<h3 id="the-three-layers">The three layers<a class="headerlink" href="#the-three-layers" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Role</th>
+<th>Guarantee</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Randomness</strong></td>
+<td>Distributes random streams from a single seed</td>
+<td>Each stream is identified by a <strong>label</strong>, not by draw order. Adding a model perturbs no other model's stream.</td>
+</tr>
+<tr>
+<td><strong>DEVS models</strong></td>
+<td>Simulation semantics, atomic and coupled</td>
+<td>Randomness is <strong>injected</strong>, never created internally. A model declares what it needs; it does not help itself.</td>
+</tr>
+<tr>
+<td><strong>Verification</strong></td>
+<td>Compares observed to theoretical, draws the figures</td>
+<td><strong>Knows nothing of the simulator.</strong> It consumes plain lists of times or <code>(t, value)</code> records, so it can observe any present or future model unmodified.</td>
+</tr>
+</tbody>
+</table>
+<p>Dependencies point one way: models receive randomness, verification receives results. No arrow points back.</p>
+<h2 id="the-central-subtlety-two-senses-of-the-same">The central subtlety: two senses of "the same"<a class="headerlink" href="#the-central-subtlety-two-senses-of-the-same" title="Permanent link">&para;</a></h2>
+<p>One might expect two equivalent writings to produce <strong>exactly the same event sequence</strong>. That is false, and it is the central trap of the project.</p>
+<p>The two versions derive their generators along <strong>different label paths</strong>: the monolith descends through <code>"neuron"</code> then <code>"spikes"</code> and <code>"transitions"</code>; the decomposed version descends through <code>"markov"</code> to <code>"transitions"</code> and through <code>"poisson"</code> to <code>"spikes"</code>. The roles correspond one to one, but the derivation keys differ, so the generators are seeded differently. Their traces <strong>necessarily</strong> differ. Requiring identical traces would declare every decomposition wrong, including the correct ones.</p>
+<p>The right criterion is not "same sequence" but <strong>"same probability law"</strong>. Two fair dice do not produce the same sequence of rolls; they are still the same die. That is the equality to be tested, and it is tested by comparing distributions.</p>
+<h2 id="model-families">Model families<a class="headerlink" href="#model-families" title="Permanent link">&para;</a></h2>
+<p>Three families of increasing complexity, all measured on the same rig.</p>
+<table>
+<thead>
+<tr>
+<th>Family</th>
+<th>Writing</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Poisson</strong></td>
+<td>Monolithic only</td>
+<td>Nothing to decompose: one source, one stream</td>
+</tr>
+<tr>
+<td><strong>MMPP</strong></td>
+<td>Both, then confronted</td>
+<td>Two nested sources of randomness: the first case where decomposition is a real choice, hence the first that demands proof</td>
+</tr>
+<tr>
+<td><strong>G-networks</strong> (Gelenbe)</td>
+<td>Decomposed from the start</td>
+<td>The assembly <em>is</em> the model; a monolith would be meaningless for a network</td>
+</tr>
+</tbody>
+</table>
+<p>MMPP is therefore the <strong>test bench for the equivalence criterion</strong>: the simplest case where decomposing is possible and can be checked not to betray the model.</p>
+<h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
+<p>The pytest suite is fully green (<strong>187 tests</strong>). Every number below comes from a single publication runner, never copied by hand:</p>
+<div class="highlight"><pre><span></span><code>python -m simubrain.experiments.run_validation_campaigns
+</code></pre></div>
+<p><span class="arithmatex">\(K = 30\)</span> independent seeds per family, <span class="arithmatex">\(\alpha = 0.05\)</span>. <strong>Every closed form falls inside the interval built from the observed between-seed dispersion.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>Family</th>
+<th>Prediction</th>
+<th>Mean</th>
+<th>CI95</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>Poisson, count</td>
+<td><span class="arithmatex">\(\lambda T = 1200.0\)</span></td>
+<td>1189.83</td>
+<td>[1175.66, 1204.00]</td>
+<td>inside</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Poisson, ISI</td>
+<td><span class="arithmatex">\(1/\lambda = 0.0500\)</span></td>
+<td>0.0504</td>
+<td>[0.0498, 0.0510]</td>
+<td>inside</td>
+</tr>
+<tr>
+<td>2</td>
+<td>MMPP monolithic</td>
+<td><span class="arithmatex">\(\bar\lambda T = 5760.0\)</span></td>
+<td>5688.53</td>
+<td>[5582.16, 5794.91]</td>
+<td>inside</td>
+</tr>
+<tr>
+<td>2</td>
+<td>MMPP decomposed</td>
+<td><span class="arithmatex">\(\bar\lambda T = 5760.0\)</span></td>
+<td>5717.70</td>
+<td>[5591.33, 5844.07]</td>
+<td>inside</td>
+</tr>
+<tr>
+<td>2</td>
+<td>MMPP, ISI</td>
+<td><span class="arithmatex">\(1/\bar\lambda = 0.0833\)</span></td>
+<td>0.0845</td>
+<td>[0.0829, 0.0862]</td>
+<td>inside</td>
+</tr>
+<tr>
+<td>2</td>
+<td>G-queue</td>
+<td><span class="arithmatex">\(\mathbb{E}[N] = 0.5000\)</span></td>
+<td>0.5028</td>
+<td>[0.4964, 0.5092]</td>
+<td>inside</td>
+</tr>
+<tr>
+<td>2</td>
+<td>M/M/1 limiting case</td>
+<td><span class="arithmatex">\(\mathbb{E}[N] = 0.6667\)</span></td>
+<td>0.6694</td>
+<td>[0.6624, 0.6764]</td>
+<td>inside</td>
+</tr>
+<tr>
+<td>2</td>
+<td>G-queue, <span class="arithmatex">\(P(N = 0)\)</span></td>
+<td>0.6667</td>
+<td>0.6652</td>
+<td>[0.6629, 0.6676]</td>
+<td>inside</td>
+</tr>
+<tr>
+<td>2</td>
+<td>G-queue, <span class="arithmatex">\(P(N = 1)\)</span></td>
+<td>0.2222</td>
+<td>0.2226</td>
+<td>[0.2214, 0.2239]</td>
+<td>inside</td>
+</tr>
+<tr>
+<td>2</td>
+<td>G-queue, <span class="arithmatex">\(P(N = 2)\)</span></td>
+<td>0.0741</td>
+<td>0.0747</td>
+<td>[0.0735, 0.0758]</td>
+<td>inside</td>
+</tr>
+<tr>
+<td>2</td>
+<td>G-queue, <span class="arithmatex">\(P(N = 3)\)</span></td>
+<td>0.0247</td>
+<td>0.0250</td>
+<td>[0.0242, 0.0258]</td>
+<td>inside</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>Statistic</th>
+<th>Kolmogorov-Smirnov</th>
+<th>Cramér-von Mises</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>Count per seed</td>
+<td><span class="arithmatex">\(D = 0.1333\)</span>, <span class="arithmatex">\(p = 0.9578\)</span></td>
+<td><span class="arithmatex">\(W = 0.0381\)</span>, <span class="arithmatex">\(p = 0.9607\)</span></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Mean ISI per seed</td>
+<td><span class="arithmatex">\(D = 0.1333\)</span>, <span class="arithmatex">\(p = 0.9578\)</span></td>
+<td><span class="arithmatex">\(W = 0.0372\)</span>, <span class="arithmatex">\(p = 0.9641\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>Eleven conformance statements and four equivalence statements, all carried by the same instrument. <strong>The project does not build three models; it builds one measurement rig and applies it fifteen times.</strong></p>
+<h3 id="criterion-2-in-one-figure">Criterion 2 in one figure<a class="headerlink" href="#criterion-2-in-one-figure" title="Permanent link">&para;</a></h3>
+<p><img alt="Conformance of five configurations, 30 seeds each" src="../images/campaign_conformance.png" /></p>
+<p><em>Conformance to theory, one independent run per point. The blue band is the Student interval built from the between-seed dispersion; the dashed red line is the closed form computed from parameters alone. The orange band, on the first three panels, is the Poisson template <span class="arithmatex">\(\mu \pm 1.96\sqrt{\mu}\)</span>.</em></p>
+<p>The contrast between panels is the argument. On <strong>Poisson</strong>, both bands agree, which is expected of a process whose variance equals its mean, and which makes this family the calibration point of the whole rig: if the two intervals disagreed here, the campaign machinery would be at fault, not the model. On the two <strong>MMPP</strong> panels, the orange band shrinks to a thin ribbon that half the points overshoot. That is <strong>over-dispersion</strong>, visible without commentary: a modulated process adds variance beyond the mean, so validating an MMPP against a Poisson template would mean measuring with the wrong instrument.</p>
+<h3 id="criterion-3-in-one-figure">Criterion 3 in one figure<a class="headerlink" href="#criterion-3-in-one-figure" title="Permanent link">&para;</a></h3>
+<p><img alt="Empirical distribution functions of the two MMPP writings" src="../images/campaign_equivalence.png" /></p>
+<p><em>Equivalence between the two writings, thirty values each. The vertical bracket marks the maximum gap <span class="arithmatex">\(D\)</span> that Kolmogorov-Smirnov reads; the hatched area between the curves is what Cramér-von Mises integrates.</em></p>
+<p>Running both tests rather than one is deliberate. KS reads only the largest vertical gap between the two empirical distribution functions, while CvM integrates the squared gap over the whole support, which makes it <strong>more powerful against certain alternatives</strong>, in particular diffuse or tail differences. It is not "more precise"; it is sensitive to a different shape of discrepancy.</p>
+<h2 id="scope-and-limitations">Scope and limitations<a class="headerlink" href="#scope-and-limitations" title="Permanent link">&para;</a></h2>
+<p>Stated rather than hidden.</p>
+<ul>
+<li><strong>The equivalence test is a refutable empirical criterion, not a mathematical proof.</strong> Failing to distinguish two models is not demonstrating they are identical. Under the null hypothesis a p-value is uniform on <span class="arithmatex">\([0,1]\)</span>, so a high p-value is not a measure of similarity.</li>
+<li><strong>The two equivalence statistics are not independent of each other.</strong> A run's mean ISI is very nearly <span class="arithmatex">\(T / \text{count}\)</span>, so the two samples share their between-seed ordering. KS, which reads ranks only, returns the same <span class="arithmatex">\(D\)</span> on both. They are two readings of one measurement, not two separate confirmations.</li>
+<li><strong>The whole-law comparison uses four marginal intervals, not a simultaneous confidence region.</strong> The occupancies of one run sum to 1, so they are not independent. The fully rigorous form would be a time-weighted chi-square test requiring the effective degrees of freedom of an autocorrelated signal.</li>
+<li><strong>The modulated families start their chain in a fixed state</strong> rather than drawing it from the stationary distribution, which is a theoretical warm-up bias. Measured across horizons of 120 s, 480 s and 1920 s, the resulting deficit changes sign and is indistinguishable from noise at <span class="arithmatex">\(K = 30\)</span>.</li>
+<li><strong>The unified meta-formalism is out of scope.</strong> It is designed by the team; this project supplies the infrastructure and the criteria.</li>
+</ul>
+<h2 id="method-notes">Method notes<a class="headerlink" href="#method-notes" title="Permanent link">&para;</a></h2>
+<p>Two choices worth stating, because they are the ones a reader is most likely to question.</p>
+<p><strong>Why one observation per run.</strong> A statistic computed <em>inside</em> a run is not i.i.d.: the inter-spike intervals of an MMPP cluster by CTMC regime, and a queue-length trajectory is autocorrelated by construction. Feeding raw intra-run ISIs to KS produced p-values around <span class="arithmatex">\(10^{-3}\)</span> for a maximum gap under 7 %, a false positive caused by a broken assumption rather than a real difference. Aggregating to one scalar per independent run restores independence between entries. Lowering <span class="arithmatex">\(\alpha\)</span> until the test passed would have been p-hacking: correcting the verdict instead of correcting the input.</p>
+<p><strong>Why <span class="arithmatex">\(K = 30\)</span>.</strong> Not a validity threshold but a <strong>precision budget</strong>, fixed in advance and measured afterwards. It buys a half-width of 1.28 % of the predicted value on the queue and 1.85 % on the MMPP. The competing readings of <span class="arithmatex">\(\rho\)</span> (0.25 for the faulty one, 0.5000 for the correct one, 0.6667 for the limiting case) are separated by tens of half-widths, so the rig discriminates between them unambiguously. Horizons matter too: on the MMPP, over-dispersion dominates the between-seed spread and decays in <span class="arithmatex">\(1/\sqrt{T}\)</span>, so multiplying the horizon by four did more for interval width than tripling the seed count.</p>
+<h2 id="long-term-impact">Long-term impact<a class="headerlink" href="#long-term-impact" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>For SimuBrAIn.</strong> The stochastic DEVS extension inherits a verification harness and a randomness scheme already exercised on three families. Above all it inherits the equivalence criterion: the instrument that lets you test, and not merely assert, that it decomposes correctly.</li>
+<li><strong>For scale.</strong> The brain has roughly <span class="arithmatex">\(10^{11}\)</span> neurons. Identifying random streams by name rather than by order of arrival is what makes it possible to replay one neuron without replaying the network, and to add a neuron without invalidating the others. That is not a technical detail, it is an architectural prerequisite.</li>
+<li><strong>Beyond neuroscience.</strong> The three-layer separation and the three correctness criteria apply to any discrete-event system containing randomness: computer networks, epidemiology, industrial queueing.</li>
+</ul>
+<h2 id="stack-and-reproducibility">Stack and reproducibility<a class="headerlink" href="#stack-and-reproducibility" title="Permanent link">&para;</a></h2>
+<p>Python 3.11, PyPDEVS 2.4.2, NumPy, SciPy, Matplotlib, pytest, ruff, Git/GitHub, MkDocs Material. The code uses a src-layout and separates atomic models, coupled models, the randomness layer, the simulator-agnostic verification layer, and the orchestration runners. The full validation, 150 runs including sixty of 1500 simulated seconds, completes in a few seconds on a laptop, from one command and one integer seed.</p>
+<h2 id="the-french-pages">The French pages<a class="headerlink" href="#the-french-pages" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong><a href="../">Vue d'ensemble</a></strong>: context, problem, hypothesis, solution</li>
+<li><strong><a href="../suivi/">Suivi</a></strong>: weekly progress log</li>
+<li><strong><a href="../analyse/">Journal de bord</a></strong>: technical and conceptual explorations, week by week</li>
+<li><strong><a href="../realisation/">Réalisation</a></strong>: architecture, components, design decisions</li>
+<li><strong><a href="../evaluation/">Évaluation</a></strong>: test strategy, results, critical analysis, limitations</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Retour en haut de la page
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      &copy; 2026 <b>DIRO</b> &ndash; Template de site pour le cours IFT3150 <br>Département d'informatique et de recherche opérationnelle <br>Université de Montréal
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.highlight", "search.suggest", "search.share", "content.tabs.link", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
