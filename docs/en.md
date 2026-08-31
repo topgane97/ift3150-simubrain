@@ -11,7 +11,7 @@ title: English summary
     **Domain expert:** Alexandre Muzy (CNRS),
     **Daily supervisor:** Abdelhamid (MSc).
 
-    This page is an English summary of the project. The detailed pages (research log, implementation, evaluation) are in French.
+    This page is an English summary of the project. The detailed pages (research log, implementation, evaluation) are in French, as are the labels inside the diagrams.
 
 ## Context
 
@@ -71,11 +71,39 @@ A stochastic DEVS model becomes reproducible, testable and composable under two 
 
 Dependencies point one way: models receive randomness, verification receives results. No arrow points back.
 
+## Architecture
+
+![C4 level 3, components of the simubrain package](images/c4_niveau3_composants.png)
+
+*C4 level 3. The four layers inside the Python package, the framework it sits on, and the test suite that exercises all of them.*
+
+The interesting claim of a layered diagram is a **negative** one: not the arrows that are present, but the ones that are absent. There is no edge between the verification layer and the models, in either direction, and no edge leaving the randomness layer. Only the orchestration layer is allowed to see all the others. Every import claim in this diagram was checked against the actual source before being drawn, which is the difference between a diagram that documents and a diagram that decorates.
+
+One consequence worth naming: PyPDEVS is a **framework, not a library**. It calls `timeAdvance`, `outputFnc` and the transition functions, so the number of calls is not decided by this code. That inversion of control is what turns the purity of those functions from a stylistic preference into a hard constraint, and it is why every random draw happens ahead of time and is stored in the state, leaving the pure functions to read rather than draw.
+
+### Three participating-class views
+
+The full class diagram grew past legibility, so it is published as three views, each answering one question.
+
+![Class view, the DEVS models](images/c4_vue1_modeles_devs.png)
+
+*View 1: the DEVS models. Atomic sources, the passive probe, and the coupled experimental frames that wire them together. Filled diamonds are compositions: a coupled model builds its submodels, which have no existence outside it. The `0..1` multiplicity on the negative source encodes the M/M/1 limiting case directly in the diagram, since removing the destruction channel is literally removing a wire rather than silencing a source.*
+
+![Class view, randomness injection](images/c4_vue2_injection_hasard.png)
+
+*View 2: how randomness reaches a model. Dashed arrows are dependencies, solid ones associations, and that distinction carries the whole story of dependency injection without a word of prose: a model depends on the stream it is handed and does not keep it, but is associated with the generator it derives from that stream. The obvious alternative, a module-level global generator, would be a Singleton, and it would destroy the exact property this repository exists to provide. Its absence is an architectural decision, not an omission.*
+
+![Class view, verification and orchestration](images/c4_vue3_verification_orchestration.png)
+
+*View 3: verification and orchestration. The verification module holds closed forms, empirical estimators and figure assembly; the orchestration layer holds the command-line runners and the multi-seed campaign module. The boundary defended here is that estimators live in the verification layer while statistical verdicts stay in the test suite. A Student quantile is an estimator; a two-sample test is a verdict. A model never judges itself.*
+
 ## The central subtlety: two senses of "the same"
 
 One might expect two equivalent writings to produce **exactly the same event sequence**. That is false, and it is the central trap of the project.
 
 The two versions derive their generators along **different label paths**: the monolith descends through `"neuron"` then `"spikes"` and `"transitions"`; the decomposed version descends through `"markov"` to `"transitions"` and through `"poisson"` to `"spikes"`. The roles correspond one to one, but the derivation keys differ, so the generators are seeded differently. Their traces **necessarily** differ. Requiring identical traces would declare every decomposition wrong, including the correct ones.
+
+Ordering is not the cause. Derivation is by label rather than by counter, so it is order-independent by construction, which is precisely the property that lets a neuron be added to a network without disturbing the ones already there.
 
 The right criterion is not "same sequence" but **"same probability law"**. Two fair dice do not produce the same sequence of rolls; they are still the same die. That is the equality to be tested, and it is tested by comparing distributions.
 
@@ -90,6 +118,8 @@ Three families of increasing complexity, all measured on the same rig.
 | **G-networks** (Gelenbe) | Decomposed from the start | The assembly *is* the model; a monolith would be meaningless for a network |
 
 MMPP is therefore the **test bench for the equivalence criterion**: the simplest case where decomposing is possible and can be checked not to betray the model.
+
+The Gelenbe family produced the strongest architectural result. A positive customer and a negative signal arrive carrying exactly the same opaque payload; what tells them apart is the **port** the coupling ends on. Both sources are therefore ordinary Poisson neurons, reused without a line of change, knowing nothing about G-networks. Routing is the responsibility of the assembly, not of the source.
 
 ## Results
 
