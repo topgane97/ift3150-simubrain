@@ -650,6 +650,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#three-participating-class-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three participating-class views
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-central-subtlety-two-senses-of-the-same" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -861,6 +889,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#three-participating-class-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three participating-class views
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-central-subtlety-two-senses-of-the-same" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1003,7 +1059,7 @@
 <strong>Academic supervisor:</strong> Eugene Syriani (UdeM),
 <strong>Domain expert:</strong> Alexandre Muzy (CNRS),
 <strong>Daily supervisor:</strong> Abdelhamid (MSc).</p>
-<p>This page is an English summary of the project. The detailed pages (research log, implementation, evaluation) are in French.</p>
+<p>This page is an English summary of the project. The detailed pages (research log, implementation, evaluation) are in French, as are the labels inside the diagrams.</p>
 </div>
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
 <p>SimuBrAIn is an international <strong>UdeM (Canada) / CNRS (France)</strong> research project whose long-term goal is to build <strong>personalized digital twins of the human brain</strong>. Axis 1, Objective 2 aims at a <strong>stochastic extension of DEVS</strong>: a single formalism able to express Poisson processes, Markov chains and queueing systems under one notation. That formalism is designed by Abdelhamid, a master's student on the project.</p>
@@ -1090,9 +1146,23 @@
 </tbody>
 </table>
 <p>Dependencies point one way: models receive randomness, verification receives results. No arrow points back.</p>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<p><img alt="C4 level 3, components of the simubrain package" src="../images/c4_niveau3_composants.png" /></p>
+<p><em>C4 level 3. The four layers inside the Python package, the framework it sits on, and the test suite that exercises all of them.</em></p>
+<p>The interesting claim of a layered diagram is a <strong>negative</strong> one: not the arrows that are present, but the ones that are absent. There is no edge between the verification layer and the models, in either direction, and no edge leaving the randomness layer. Only the orchestration layer is allowed to see all the others. Every import claim in this diagram was checked against the actual source before being drawn, which is the difference between a diagram that documents and a diagram that decorates.</p>
+<p>One consequence worth naming: PyPDEVS is a <strong>framework, not a library</strong>. It calls <code>timeAdvance</code>, <code>outputFnc</code> and the transition functions, so the number of calls is not decided by this code. That inversion of control is what turns the purity of those functions from a stylistic preference into a hard constraint, and it is why every random draw happens ahead of time and is stored in the state, leaving the pure functions to read rather than draw.</p>
+<h3 id="three-participating-class-views">Three participating-class views<a class="headerlink" href="#three-participating-class-views" title="Permanent link">&para;</a></h3>
+<p>The full class diagram grew past legibility, so it is published as three views, each answering one question.</p>
+<p><img alt="Class view, the DEVS models" src="../images/c4_vue1_modeles_devs.png" /></p>
+<p><em>View 1: the DEVS models. Atomic sources, the passive probe, and the coupled experimental frames that wire them together. Filled diamonds are compositions: a coupled model builds its submodels, which have no existence outside it. The <code>0..1</code> multiplicity on the negative source encodes the M/M/1 limiting case directly in the diagram, since removing the destruction channel is literally removing a wire rather than silencing a source.</em></p>
+<p><img alt="Class view, randomness injection" src="../images/c4_vue2_injection_hasard.png" /></p>
+<p><em>View 2: how randomness reaches a model. Dashed arrows are dependencies, solid ones associations, and that distinction carries the whole story of dependency injection without a word of prose: a model depends on the stream it is handed and does not keep it, but is associated with the generator it derives from that stream. The obvious alternative, a module-level global generator, would be a Singleton, and it would destroy the exact property this repository exists to provide. Its absence is an architectural decision, not an omission.</em></p>
+<p><img alt="Class view, verification and orchestration" src="../images/c4_vue3_verification_orchestration.png" /></p>
+<p><em>View 3: verification and orchestration. The verification module holds closed forms, empirical estimators and figure assembly; the orchestration layer holds the command-line runners and the multi-seed campaign module. The boundary defended here is that estimators live in the verification layer while statistical verdicts stay in the test suite. A Student quantile is an estimator; a two-sample test is a verdict. A model never judges itself.</em></p>
 <h2 id="the-central-subtlety-two-senses-of-the-same">The central subtlety: two senses of "the same"<a class="headerlink" href="#the-central-subtlety-two-senses-of-the-same" title="Permanent link">&para;</a></h2>
 <p>One might expect two equivalent writings to produce <strong>exactly the same event sequence</strong>. That is false, and it is the central trap of the project.</p>
 <p>The two versions derive their generators along <strong>different label paths</strong>: the monolith descends through <code>"neuron"</code> then <code>"spikes"</code> and <code>"transitions"</code>; the decomposed version descends through <code>"markov"</code> to <code>"transitions"</code> and through <code>"poisson"</code> to <code>"spikes"</code>. The roles correspond one to one, but the derivation keys differ, so the generators are seeded differently. Their traces <strong>necessarily</strong> differ. Requiring identical traces would declare every decomposition wrong, including the correct ones.</p>
+<p>Ordering is not the cause. Derivation is by label rather than by counter, so it is order-independent by construction, which is precisely the property that lets a neuron be added to a network without disturbing the ones already there.</p>
 <p>The right criterion is not "same sequence" but <strong>"same probability law"</strong>. Two fair dice do not produce the same sequence of rolls; they are still the same die. That is the equality to be tested, and it is tested by comparing distributions.</p>
 <h2 id="model-families">Model families<a class="headerlink" href="#model-families" title="Permanent link">&para;</a></h2>
 <p>Three families of increasing complexity, all measured on the same rig.</p>
@@ -1123,6 +1193,7 @@
 </tbody>
 </table>
 <p>MMPP is therefore the <strong>test bench for the equivalence criterion</strong>: the simplest case where decomposing is possible and can be checked not to betray the model.</p>
+<p>The Gelenbe family produced the strongest architectural result. A positive customer and a negative signal arrive carrying exactly the same opaque payload; what tells them apart is the <strong>port</strong> the coupling ends on. Both sources are therefore ordinary Poisson neurons, reused without a line of change, knowing nothing about G-networks. Routing is the responsibility of the assembly, not of the source.</p>
 <h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
 <p>The pytest suite is fully green (<strong>187 tests</strong>). Every number below comes from a single publication runner, never copied by hand:</p>
 <div class="highlight"><pre><span></span><code>python -m simubrain.experiments.run_validation_campaigns
